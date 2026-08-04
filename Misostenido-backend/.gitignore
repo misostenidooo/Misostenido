@@ -33,7 +33,3 @@ bld/
 
 ## Environment / Config overrides
 appsettings*.local.json
-
-## Archives
-*.zip
-
