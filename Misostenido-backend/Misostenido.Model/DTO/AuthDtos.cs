@@ -41,3 +41,26 @@ public class AuthResponseDto
     public string RefreshToken { get; set; } = string.Empty;
     public DateTime FechaExpiracion { get; set; }
 }
+
+public class CambiarContrasenaRequestDto
+{
+    public string ContrasenaActual { get; set; } = string.Empty;
+    public string NuevaContrasena { get; set; } = string.Empty;
+}
+
+public class SolicitarRecuperacionRequestDto
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+public class RestablecerContrasenaRequestDto
+{
+    public string Token { get; set; } = string.Empty;
+    public string NuevaContrasena { get; set; } = string.Empty;
+}
+
+public class VerificarEmailRequestDto
+{
+    public string Token { get; set; } = string.Empty;
+}
+

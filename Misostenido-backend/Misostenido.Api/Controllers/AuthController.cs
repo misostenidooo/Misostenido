@@ -92,6 +92,52 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("cambiar-contrasena")]
+    [Authorize]
+    public async Task<IActionResult> CambiarContrasena([FromBody] CambiarContrasenaRequestDto dto)
+    {
+        var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(idClaim, out int idUsuario)) return Unauthorized();
+
+        var resultado = await _authService.CambiarContrasenaAsync(idUsuario, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    [HttpPost("revocar-sesiones")]
+    [Authorize]
+    public async Task<IActionResult> RevocarTodasLasSesiones()
+    {
+        var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(idClaim, out int idUsuario)) return Unauthorized();
+
+        var resultado = await _authService.RevocarTodasLasSesionesAsync(idUsuario);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    [HttpPost("solicitar-recuperacion")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SolicitarRecuperacion([FromBody] SolicitarRecuperacionRequestDto dto)
+    {
+        var resultado = await _authService.SolicitarRecuperacionContrasenaAsync(dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    [HttpPost("restablecer-contrasena")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaRequestDto dto)
+    {
+        var resultado = await _authService.RestablecerContrasenaAsync(dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    [HttpPost("verificar-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerificarEmail([FromBody] VerificarEmailRequestDto dto)
+    {
+        var resultado = await _authService.VerificarEmailAsync(dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
     private string GetClientIp()
     {
         if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))

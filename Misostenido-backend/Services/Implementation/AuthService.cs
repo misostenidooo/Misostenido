@@ -262,4 +262,180 @@ public class AuthService : IAuthService
             FechaExpiracion = expirationDate
         };
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CAMBIAR CONTRASEÑA (Usuario Logueado)
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<MensajeResponseDto> CambiarContrasenaAsync(int idUsuario, CambiarContrasenaRequestDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await conn.OpenAsync();
+
+        // 1. Obtener hash actual
+        string? hashActual = null;
+        await using (SqlCommand cmdGet = new("SELECT contrasena_hash FROM dbo.Usuario WHERE id_usuario = @id_usuario", conn))
+        {
+            cmdGet.Parameters.AddWithValue("@id_usuario", idUsuario);
+            var result = await cmdGet.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value) hashActual = result.ToString();
+        }
+
+        if (string.IsNullOrEmpty(hashActual) || !BCrypt.Net.BCrypt.Verify(dto.ContrasenaActual, hashActual))
+        {
+            return new MensajeResponseDto { Exito = false, Mensaje = "La contraseña actual no es correcta." };
+        }
+
+        // 2. Hashear nueva clave y actualizar con SP
+        string nuevoHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContrasena);
+        await using (SqlCommand cmdUpd = new("dbo.sp_ActualizarContrasena", conn))
+        {
+            cmdUpd.CommandType = CommandType.StoredProcedure;
+            cmdUpd.Parameters.AddWithValue("@id_usuario", idUsuario);
+            cmdUpd.Parameters.AddWithValue("@nuevo_hash", nuevoHash);
+
+            await using var reader = await cmdUpd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                string msg = reader.GetString(reader.GetOrdinal("mensaje"));
+                return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? "Contraseña actualizada correctamente." : msg };
+            }
+        }
+
+        return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REVOCAR TODAS LAS SESIONES
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<MensajeResponseDto> RevocarTodasLasSesionesAsync(int idUsuario)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_RevocarTodasLasSesiones", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id_usuario", idUsuario);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            string msg = reader.GetString(reader.GetOrdinal("mensaje"));
+            return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? "Todas las sesiones han sido revocadas." : msg };
+        }
+        return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SOLICITAR RECUPERACIÓN DE CONTRASEÑA (Genera Token)
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<IdMensajeResponseDto> SolicitarRecuperacionContrasenaAsync(SolicitarRecuperacionRequestDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await conn.OpenAsync();
+
+        int idUsuario = -1;
+        await using (SqlCommand cmdUser = new("dbo.sp_ObtenerUsuarioParaLogin", conn))
+        {
+            cmdUser.CommandType = CommandType.StoredProcedure;
+            cmdUser.Parameters.AddWithValue("@email", dto.Email);
+            await using var readerUser = await cmdUser.ExecuteReaderAsync();
+            if (await readerUser.ReadAsync())
+            {
+                idUsuario = readerUser.GetInt32(readerUser.GetOrdinal("id_usuario"));
+            }
+        }
+
+        if (idUsuario <= 0)
+        {
+            return new IdMensajeResponseDto { Id = -1, Exito = false, Mensaje = "El correo electrónico no existe en el sistema." };
+        }
+
+        string token = Guid.NewGuid().ToString("N");
+
+        await using (SqlCommand cmdToken = new("dbo.sp_CrearTokenVerificacion", conn))
+        {
+            cmdToken.CommandType = CommandType.StoredProcedure;
+            cmdToken.Parameters.AddWithValue("@id_usuario", idUsuario);
+            cmdToken.Parameters.AddWithValue("@token", token);
+            cmdToken.Parameters.AddWithValue("@tipo", "RECUPERACION_CLAVE");
+            cmdToken.Parameters.AddWithValue("@horas_expiracion", 24);
+
+            var result = await cmdToken.ExecuteScalarAsync();
+            int tokenId = Convert.ToInt32(result);
+            return new IdMensajeResponseDto
+            {
+                Id = tokenId,
+                Exito = tokenId > 0,
+                Mensaje = tokenId > 0 ? $"Token de recuperación generado: {token}" : "Error al generar token"
+            };
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RESTABLECER CONTRASEÑA CON TOKEN
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<MensajeResponseDto> RestablecerContrasenaAsync(RestablecerContrasenaRequestDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await conn.OpenAsync();
+
+        int idUsuario = -1;
+        string mensaje = "";
+
+        await using (SqlCommand cmdVal = new("dbo.sp_ValidarTokenVerificacion", conn))
+        {
+            cmdVal.CommandType = CommandType.StoredProcedure;
+            cmdVal.Parameters.AddWithValue("@token", dto.Token);
+            await using var readerVal = await cmdVal.ExecuteReaderAsync();
+            if (await readerVal.ReadAsync())
+            {
+                idUsuario = Convert.ToInt32(readerVal["id_usuario"]);
+                mensaje = readerVal.GetString(readerVal.GetOrdinal("mensaje"));
+            }
+        }
+
+        if (idUsuario <= 0)
+        {
+            return new MensajeResponseDto { Exito = false, Mensaje = string.IsNullOrEmpty(mensaje) ? "Token inválido o expirado." : mensaje };
+        }
+
+        string nuevoHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContrasena);
+        await using (SqlCommand cmdUpd = new("dbo.sp_ActualizarContrasena", conn))
+        {
+            cmdUpd.CommandType = CommandType.StoredProcedure;
+            cmdUpd.Parameters.AddWithValue("@id_usuario", idUsuario);
+            cmdUpd.Parameters.AddWithValue("@nuevo_hash", nuevoHash);
+
+            await using var readerUpd = await cmdUpd.ExecuteReaderAsync();
+            if (await readerUpd.ReadAsync())
+            {
+                string msg = readerUpd.GetString(readerUpd.GetOrdinal("mensaje"));
+                return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? "Contraseña restablecida correctamente." : msg };
+            }
+        }
+
+        return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // VERIFICAR CORREO ELECTRÓNICO CON TOKEN
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task<MensajeResponseDto> VerificarEmailAsync(VerificarEmailRequestDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_ValidarTokenVerificacion", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@token", dto.Token);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            int id = Convert.ToInt32(reader["id_usuario"]);
+            string msg = reader.GetString(reader.GetOrdinal("mensaje"));
+            return new MensajeResponseDto { Exito = id > 0, Mensaje = id > 0 ? "Correo electrónico verificado correctamente." : msg };
+        }
+
+        return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
 }
+
