@@ -172,8 +172,122 @@ public class UsuarioController : ControllerBase
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // PORTAFOLIO MULTIMEDIA
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Sube una foto, video o audio al portafolio del usuario autenticado.</summary>
+    [HttpPost("me/media")]
+    [Authorize]
+    public async Task<IActionResult> SubirMedia([FromBody] SubirMediaDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.SubirMediaAsync(id, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Elimina un elemento multimedia del portafolio del usuario autenticado.</summary>
+    [HttpDelete("me/media/{idMedia:int}")]
+    [Authorize]
+    public async Task<IActionResult> EliminarMedia(int idMedia)
+    {
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.EliminarMediaAsync(idMedia, id);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Obtiene todo el portafolio multimedia de un usuario (público).</summary>
+    [HttpGet("{idUsuario:int}/media")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ObtenerMedia(int idUsuario)
+    {
+        var media = await _usuarioService.ObtenerMediaAsync(idUsuario);
+        return Ok(media);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // INTEGRANTES DE GRUPO
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Agrega un integrante al grupo del usuario autenticado (solo tipo GRUPO).</summary>
+    [HttpPost("me/integrantes")]
+    [Authorize]
+    public async Task<IActionResult> AgregarIntegrante([FromBody] AgregarIntegranteDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.AgregarIntegranteAsync(id, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Elimina un integrante del grupo del usuario autenticado.</summary>
+    [HttpDelete("me/integrantes/{idIntegrante:int}")]
+    [Authorize]
+    public async Task<IActionResult> EliminarIntegrante(int idIntegrante)
+    {
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.EliminarIntegranteAsync(id, idIntegrante);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Obtiene todos los integrantes de un grupo (público).</summary>
+    [HttpGet("{idGrupo:int}/integrantes")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ObtenerIntegrantes(int idGrupo)
+    {
+        var integrantes = await _usuarioService.ObtenerIntegrantesAsync(idGrupo);
+        return Ok(integrantes);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CURSOS DE ESCUELA
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Crea un nuevo curso para la escuela del usuario autenticado (solo tipo ESCUELA).</summary>
+    [HttpPost("me/cursos")]
+    [Authorize]
+    public async Task<IActionResult> CrearCurso([FromBody] CrearCursoDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.CrearCursoAsync(id, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Actualiza un curso de la escuela del usuario autenticado.</summary>
+    [HttpPut("me/cursos/{idCurso:int}")]
+    [Authorize]
+    public async Task<IActionResult> ActualizarCurso(int idCurso, [FromBody] ActualizarCursoDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.ActualizarCursoAsync(idCurso, id, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Elimina un curso de la escuela del usuario autenticado.</summary>
+    [HttpDelete("me/cursos/{idCurso:int}")]
+    [Authorize]
+    public async Task<IActionResult> EliminarCurso(int idCurso)
+    {
+        int id = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _usuarioService.EliminarCursoAsync(idCurso, id);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Obtiene todos los cursos de una escuela (público).</summary>
+    [HttpGet("{idEscuela:int}/cursos")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ObtenerCursos(int idEscuela)
+    {
+        var cursos = await _usuarioService.ObtenerCursosAsync(idEscuela);
+        return Ok(cursos);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Helpers privados para extraer el id_usuario del JWT
     // ─────────────────────────────────────────────────────────────────────────
+
     private int? ObtenerIdUsuarioActual()
     {
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);

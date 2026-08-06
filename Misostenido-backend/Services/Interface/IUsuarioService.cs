@@ -4,19 +4,31 @@ namespace Interface;
 
 public interface IUsuarioService
 {
-    /// <summary>Obtiene el perfil público o propio de un usuario.</summary>
+    // ── Perfil ────────────────────────────────────────────────────────────────
     Task<PerfilResponseDto?> ObtenerPerfilAsync(int idUsuarioPerfil, int? idVisitante = null);
-
-    /// <summary>Edita los datos del perfil del usuario autenticado.</summary>
     Task<MensajeResponseDto> ActualizarPerfilAsync(int idUsuario, ActualizarPerfilDto dto);
 
-    /// <summary>Obtiene los permisos del usuario desde su rol en BD.</summary>
+    // ── Permisos ──────────────────────────────────────────────────────────────
     Task<PermisosResponseDto> ObtenerPermisosAsync(int idUsuario);
-
-    /// <summary>Verifica si el usuario tiene un permiso específico.</summary>
     Task<bool> TienePermisoAsync(int idUsuario, string codigoPermiso);
 
+    // ── Portafolio multimedia ─────────────────────────────────────────────────
+    Task<IdMensajeResponseDto> SubirMediaAsync(int idUsuario, SubirMediaDto dto);
+    Task<MensajeResponseDto> EliminarMediaAsync(int idContenidoMultimedia, int idUsuario);
+    Task<List<MediaDto>> ObtenerMediaAsync(int idUsuario);
+
+    // ── Integrantes de grupo ──────────────────────────────────────────────────
+    Task<IdMensajeResponseDto> AgregarIntegranteAsync(int idGrupo, AgregarIntegranteDto dto);
+    Task<MensajeResponseDto> EliminarIntegranteAsync(int idGrupo, int idIntegrante);
+    Task<List<IntegranteDetalleDto>> ObtenerIntegrantesAsync(int idGrupo);
+
+    // ── Cursos de escuela ─────────────────────────────────────────────────────
+    Task<IdMensajeResponseDto> CrearCursoAsync(int idEscuela, CrearCursoDto dto);
+    Task<MensajeResponseDto> ActualizarCursoAsync(int idEscuelaCurso, int idEscuela, ActualizarCursoDto dto);
+    Task<MensajeResponseDto> EliminarCursoAsync(int idEscuelaCurso, int idEscuela);
+    Task<List<CursoDetalleDto>> ObtenerCursosAsync(int idEscuela);
+
     // ── Admin ─────────────────────────────────────────────────────────────────
-    /// <summary>Gestiona estado, verificación o rol de un usuario (solo ADMIN).</summary>
     Task<MensajeResponseDto> GestionarUsuarioAsync(int idAdmin, GestionarUsuarioDto dto);
 }
+

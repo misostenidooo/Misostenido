@@ -96,3 +96,73 @@ public class PermisosResponseDto
     public int IdUsuario { get; set; }
     public List<string> Permisos { get; set; } = [];
 }
+
+// ── Request: Subir media al portafolio ────────────────────────────────────────
+public class SubirMediaDto
+{
+    /// <summary>FOTO | VIDEO | AUDIO</summary>
+    public string Tipo { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+}
+
+// ── Request: Agregar integrante a grupo ───────────────────────────────────────
+public class AgregarIntegranteDto
+{
+    public int IdIntegrante { get; set; }
+    public string? RolEnGrupo { get; set; }
+}
+
+// ── Request: Crear curso (solo para ESCUELA) ──────────────────────────────────
+public class CrearCursoDto
+{
+    public string NombreCurso { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+    public string? Horario { get; set; }
+    public decimal? Precio { get; set; }
+}
+
+// ── Request: Actualizar curso ─────────────────────────────────────────────────
+public class ActualizarCursoDto
+{
+    public string NombreCurso { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+    public string? Horario { get; set; }
+    public decimal? Precio { get; set; }
+    public bool Estado { get; set; } = true;
+}
+
+// ── CursoDto con id_escuela (para ObtenerCursos completo) ─────────────────────
+public class CursoDetalleDto
+{
+    public int IdEscuelaCurso { get; set; }
+    public int IdEscuela { get; set; }
+    public string NombreCurso { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+    public string? Horario { get; set; }
+    public decimal? Precio { get; set; }
+    public bool Estado { get; set; }
+    public DateTime FechaCreacion { get; set; }
+}
+
+// ── IntegranteDetalleDto con email (para ObtenerIntegrantes completo) ──────────
+public class IntegranteDetalleDto
+{
+    public int IdGrupoIntegrante { get; set; }
+    public int IdGrupo { get; set; }
+    public int IdIntegrante { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public string? FotoPerfilUrl { get; set; }
+    public string? Instrumento { get; set; }
+    public string? RolEnGrupo { get; set; }
+    public DateTime FechaUnion { get; set; }
+}
+
+// ── Response: id generado + mensaje ──────────────────────────────────────────
+public class IdMensajeResponseDto
+{
+    public int Id { get; set; }
+    public bool Exito { get; set; }
+    public string Mensaje { get; set; } = string.Empty;
+}
