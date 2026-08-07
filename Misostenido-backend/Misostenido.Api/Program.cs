@@ -18,6 +18,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IInicioService, InicioService>();
 builder.Services.AddScoped<IFeedService, FeedService>();
+builder.Services.AddScoped<IContratacionService, ContratacionService>();
 
 // Configuración de Autenticación JWT
 string secretKey = builder.Configuration["JwtSettings:SecretKey"] 
