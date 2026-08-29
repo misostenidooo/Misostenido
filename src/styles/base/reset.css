@@ -1,0 +1,14 @@
+/* reset.css — Elimina estilos por defecto del navegador */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
+img, video { max-width: 100%; display: block; }
+input, button, textarea, select { font: inherit; }
+a { text-decoration: none; color: inherit; }
+ul, ol { list-style: none; }
