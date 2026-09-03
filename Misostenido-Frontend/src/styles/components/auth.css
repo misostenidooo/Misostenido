@@ -1,0 +1,759 @@
+/* auth.css — Login / Register | Split-Screen 100% fiel al Figma */
+
+/* ===== WRAPPER: Toda la pantalla, sin márgenes ===== */
+.auth-page-wrapper {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.auth-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* =====================================================
+   PANEL IZQUIERDO — Imagen + overlay oscuro + contenido
+   ===================================================== */
+.auth-hero-panel {
+  flex: 1.05;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.auth-hero-login {
+  background-image: url('../../assets/images/hero_marimba_bg.jpg');
+}
+
+.auth-hero-register {
+  background-image: url('../../assets/images/reg_concert_bg.jpg');
+}
+
+/* ===== ESTILOS ESPECÍFICOS DEL HERO DE REGISTRO ===== */
+.reg-hero-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.reg-logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.reg-top-thumb {
+  width: 150px;
+  height: 95px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.reg-top-thumb img,
+.reg-bottom-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reg-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.reg-hero-badge-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2.5px solid #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4), 0 6px 18px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.reg-hero-title {
+  font-family: 'Playfair Display', 'Dancing Script', 'Caveat', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.reg-bottom-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.reg-bottom-thumb {
+  width: 130px;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.auth-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(6, 26, 20, 0.84) 0%,
+    rgba(10, 44, 35, 0.76) 55%,
+    rgba(5, 20, 16, 0.88) 100%
+  );
+  z-index: 1;
+}
+
+.auth-hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+/* Badge circular superior con la bailarina folclórica */
+.auth-hero-badge-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2.5px solid #38bdf8;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.img-circle-badge {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Sección central del hero */
+.auth-hero-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+/* Título principal — Fuente Scripter / Caligrafía como Figma */
+.auth-hero-title {
+  font-family: 'Playfair Display', 'Dancing Script', 'Caveat', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  letter-spacing: -0.3px;
+}
+
+/* Texto pequeño — Fuente Fourthand (Plus Jakarta Sans) */
+.auth-hero-description {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.86rem;
+  color: #e2e8f0;
+  line-height: 1.45;
+  margin-bottom: 12px;
+  max-width: 440px;
+}
+
+.auth-hero-tags {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  color: #38bdf8;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* Pills de estadísticas */
+.auth-hero-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-stat-pill {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+
+.pill-dot {
+  color: #38bdf8;
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+/* Sección inferior: miniaturas en la posición exacta del Figma */
+.auth-hero-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.auth-hero-thumbnails {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+
+/* Tocador de guitarra abajo a la izquierda */
+.thumb-card.thumb-left {
+  width: 140px;
+  height: 90px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+/* Guitarra abajo a la derecha */
+.thumb-card.thumb-right {
+  width: 175px;
+  height: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.thumb-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Register extras */
+.auth-brand-logo {
+  flex-shrink: 0;
+}
+
+.logo-text-art {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logo-main-script {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 2.4rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.logo-pentagram {
+  display: flex;
+  align-items: center;
+}
+
+.logo-clef {
+  font-size: 2.6rem;
+  color: #a7f3d0;
+  line-height: 1;
+}
+
+.logo-brand-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 1.9rem;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.auth-hero-badge-tag {
+  display: inline-block;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  width: fit-content;
+}
+
+.auth-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.94rem;
+  color: #d1fae5;
+}
+
+.feature-icon { font-size: 1.1rem; }
+
+/* Barras de audio */
+.sound-wave-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 24px;
+}
+
+.sound-wave-bars span {
+  width: 4px;
+  background: #34d399;
+  border-radius: 2px;
+}
+
+.sound-wave-bars span:nth-child(1) { height: 7px; }
+.sound-wave-bars span:nth-child(2) { height: 14px; }
+.sound-wave-bars span:nth-child(3) { height: 22px; }
+.sound-wave-bars span:nth-child(4) { height: 12px; }
+.sound-wave-bars span:nth-child(5) { height: 18px; }
+.sound-wave-bars span:nth-child(6) { height: 13px; }
+.sound-wave-bars span:nth-child(7) { height: 6px; }
+
+
+/* =====================================================
+   PANEL DERECHO — Fondo menta + tarjeta blanca flotante
+   ===================================================== */
+.auth-form-panel {
+  flex: 0.95;
+  background-color: #c8dcd7;
+  background-image:
+    radial-gradient(ellipse at 80% 10%, rgba(13, 104, 85, 0.13) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 90%, rgba(13, 104, 85, 0.10) 0%, transparent 45%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+/* ===== TARJETA FLOTANTE BLANCA ===== */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 28px 20px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.04),
+    0 12px 32px rgba(10, 34, 27, 0.10);
+}
+
+.auth-card-header {
+  margin-bottom: 14px;
+}
+
+/* Logo oficial en tarjeta */
+.auth-brand-logo-wrap {
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.auth-logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header-icon-pill {
+  width: 32px;
+  height: 32px;
+  background: #e6f4f1;
+  color: #0d6855;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+
+.auth-card-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0f2e26;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.4px;
+}
+
+.auth-card-subtitle {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ===== FORMULARIO ===== */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Alerta de error */
+.auth-form-alert {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-label {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 0.1px;
+}
+
+/* Input con borde izquierdo verde como en Figma */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: #0d6855;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 104, 85, 0.10);
+}
+
+/* Borde izquierdo verde (característica visual del Figma) */
+.input-wrapper::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #0d6855;
+  border-radius: 10px 0 0 10px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.form-control {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 12px 42px 12px 44px;
+  font-size: 0.93rem;
+  color: #1e293b;
+  font-family: inherit;
+}
+
+/* Placeholder desaparece al hacer focus */
+.form-control::placeholder {
+  color: #94a3b8;
+  transition: opacity 0.15s ease;
+}
+
+.form-control:focus::placeholder {
+  opacity: 0;
+}
+
+/* readonly se ve exactamente igual que editable (evita fondo gris del navegador) */
+.form-control[readonly] {
+  background: #f8fafc;
+  cursor: text;
+  color: #1e293b;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Botón ojo (toggle contraseña) */
+.btn-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 1;
+}
+
+.btn-toggle-password:hover {
+  color: #0d6855;
+}
+
+/* Recordarme + ¿Olvidaste? */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  margin-top: -2px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: 500;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0d6855;
+  cursor: pointer;
+}
+
+.link-forgot {
+  color: #0d6855;
+  font-weight: 600;
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.link-forgot:hover {
+  text-decoration: underline;
+}
+
+/* Botón principal "Iniciar Sesión" */
+.btn-auth-submit {
+  width: 100%;
+  background: #0d6855;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 0.97rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(13, 104, 85, 0.30);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  margin-top: 2px;
+}
+
+.btn-auth-submit:hover:not(:disabled) {
+  background: #094e40;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(13, 104, 85, 0.38);
+}
+
+.btn-auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-auth-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Divisor "O CONTINÚA CON" */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-divider span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* Botón Continuar con Google */
+.btn-social-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-social-google:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Footer de la tarjeta */
+.auth-footer-link {
+  text-align: center;
+  font-size: 0.86rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.link-highlight {
+  color: #0d6855;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-highlight:hover {
+  text-decoration: underline;
+}
+
+.auth-sub-link {
+  font-size: 0.76rem;
+  color: #0d6855;
+  margin-top: 4px;
+}
+
+/* Copyright debajo de la tarjeta */
+.auth-copyright {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #4a6e63;
+  margin-top: 20px;
+}
+
+/* ===== Selector de perfil (Register) ===== */
+.profile-type-selector {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.profile-type-btn {
+  flex: 1;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.79rem;
+  font-weight: 600;
+  padding: 9px 4px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-family: inherit;
+}
+
+.profile-type-btn.active {
+  background: #0d6855;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(13, 104, 85, 0.25);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .auth-container {
+    flex-direction: column;
+  }
+  .auth-hero-panel {
+    display: none;
+  }
+  .auth-form-panel {
+    flex: 1;
+    width: 100%;
+    padding: 24px 16px;
+  }
+}
