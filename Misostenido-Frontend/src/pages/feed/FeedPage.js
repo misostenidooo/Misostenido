@@ -23,13 +23,19 @@ export const FeedPage = {
     this._container = container;
     this._selectedFiles = [];
 
+    const savedProfileBanner = localStorage.getItem('profile_banner_bg');
+    const profileBannerStyle = savedProfileBanner ? `background-image: url('${savedProfileBanner}');` : '';
+
     container.innerHTML = `
       <div class="feed-layout">
 
         <!-- ============ SIDEBAR IZQUIERDO ============ -->
         <aside class="feed-sidebar feed-sidebar-left">
           <div class="sidebar-profile-card">
-            <div class="profile-banner"></div>
+            <div class="profile-banner" id="profile-banner-el" style="${profileBannerStyle}">
+              <button class="btn-change-profile-banner" id="btn-change-profile-banner" title="Cambiar foto de fondo de portada">📷</button>
+              <input type="file" id="profile-banner-file-input" accept="image/*" style="display:none" />
+            </div>
             <div class="profile-info">
               <div class="profile-avatar-wrap">
                 <img src="${avatarSrc}" alt="${user.name || 'Usuario'}" class="profile-avatar" />
@@ -324,15 +330,24 @@ export const FeedPage = {
           const trackTitle = rawName.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
           return `
             <div class="carousel-slide" data-idx="${idx}">
-              <div class="post-audio-card">
-                <div class="post-audio-icon-wrap">
-                  <div class="post-audio-icon">🎵</div>
+              <div class="post-audio-whatsapp-card">
+                <button class="wa-audio-play-btn" type="button" aria-label="Reproducir audio">
+                  <svg class="wa-icon-play" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  <svg class="wa-icon-pause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <div class="wa-audio-body">
+                  <div class="wa-audio-top">
+                    <span class="wa-audio-title">${trackTitle}</span>
+                    <span class="wa-audio-timer">00:00</span>
+                  </div>
+                  <div class="wa-audio-seek-container">
+                    <div class="wa-audio-seek-track">
+                      <div class="wa-audio-seek-fill" style="width: 0%"></div>
+                    </div>
+                    <input type="range" class="wa-audio-slider" min="0" max="100" value="0" step="0.1" aria-label="Progreso de reproducción" />
+                  </div>
                 </div>
-                <div class="post-audio-body">
-                  <div class="post-audio-label">PISTA MUSICAL</div>
-                  <span class="post-audio-title">${trackTitle}</span>
-                  <audio src="${fullUrl}" controls class="post-audio-player-native" preload="metadata"></audio>
-                </div>
+                <audio src="${fullUrl}" class="post-audio-element" preload="metadata"></audio>
               </div>
             </div>
           `;
@@ -618,6 +633,35 @@ export const FeedPage = {
   // ─────────────────────────────────────────────
   attachEvents(container) {
     const isAuth = authService.isAuthenticated();
+
+    // Cambiar foto de portada/fondo del perfil
+    const btnChangeBanner = container.querySelector('#btn-change-profile-banner');
+    const inputBannerFile = container.querySelector('#profile-banner-file-input');
+    const bannerEl = container.querySelector('#profile-banner-el');
+
+    btnChangeBanner?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      inputBannerFile.click();
+    });
+
+    inputBannerFile?.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        btnChangeBanner.textContent = '⏳';
+        try {
+          const { storageService } = await import('../../services/storageService.js');
+          const res = await storageService.uploadFile(file);
+          if (res && res.url) {
+            localStorage.setItem('profile_banner_bg', res.url);
+            bannerEl.style.backgroundImage = `url('${res.url}')`;
+            btnChangeBanner.textContent = '📷';
+          }
+        } catch (err) {
+          alert('Error al subir imagen de portada: ' + (err.message || 'Intente nuevamente'));
+          btnChangeBanner.textContent = '📷';
+        }
+      }
+    });
     const modalOverlay = container.querySelector('#fb-modal-overlay');
     const mediaContainer = container.querySelector('#fb-media-container');
     const fileInput = container.querySelector('#fb-file-input');
@@ -859,6 +903,91 @@ export const FeedPage = {
           const current = parseInt(carousel.dataset.current, 10);
           goToSlide(carousel, diff > 0 ? current + 1 : current - 1);
         }
+      });
+    });
+
+    // ─── AUDIOS ESTILO WHATSAPP DE REPRODUCCIÓN INTERACTIVA ───
+    container.querySelectorAll('.post-audio-whatsapp-card').forEach(card => {
+      if (card.dataset.bound === 'true') return;
+      card.dataset.bound = 'true';
+
+      const audio = card.querySelector('.post-audio-element');
+      const playBtn = card.querySelector('.wa-audio-play-btn');
+      const iconPlay = card.querySelector('.wa-icon-play');
+      const iconPause = card.querySelector('.wa-icon-pause');
+      const timer = card.querySelector('.wa-audio-timer');
+      const slider = card.querySelector('.wa-audio-slider');
+      const fill = card.querySelector('.wa-audio-seek-fill');
+
+      if (!audio || !playBtn) return;
+
+      const formatTime = (seconds) => {
+        if (isNaN(seconds) || seconds < 0) return '00:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      };
+
+      audio.addEventListener('loadedmetadata', () => {
+        if (audio.duration && !isNaN(audio.duration)) {
+          timer.textContent = formatTime(audio.duration);
+        }
+      });
+
+      audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
+        const pct = (audio.currentTime / audio.duration) * 100;
+        if (slider) slider.value = pct;
+        if (fill) fill.style.width = `${pct}%`;
+        if (timer) {
+          timer.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+        }
+      });
+
+      playBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Pausar todos los otros reproductores activos en la página (estilo WhatsApp)
+        document.querySelectorAll('audio.post-audio-element').forEach(a => {
+          if (a !== audio && !a.paused) {
+            a.pause();
+          }
+        });
+
+        if (audio.paused) {
+          audio.play().then(() => {
+            if (iconPlay) iconPlay.style.display = 'none';
+            if (iconPause) iconPause.style.display = 'block';
+            card.classList.add('playing');
+          }).catch(err => console.warn('[AudioPlayer] Error al reproducir audio:', err));
+        } else {
+          audio.pause();
+          if (iconPlay) iconPlay.style.display = 'block';
+          if (iconPause) iconPause.style.display = 'none';
+          card.classList.remove('playing');
+        }
+      });
+
+      audio.addEventListener('pause', () => {
+        if (iconPlay) iconPlay.style.display = 'block';
+        if (iconPause) iconPause.style.display = 'none';
+        card.classList.remove('playing');
+      });
+
+      audio.addEventListener('ended', () => {
+        if (iconPlay) iconPlay.style.display = 'block';
+        if (iconPause) iconPause.style.display = 'none';
+        card.classList.remove('playing');
+        if (slider) slider.value = 0;
+        if (fill) fill.style.width = '0%';
+        if (audio.duration && timer) timer.textContent = formatTime(audio.duration);
+      });
+
+      slider?.addEventListener('input', (e) => {
+        e.stopPropagation();
+        if (!audio.duration) return;
+        const seekTime = (parseFloat(e.target.value) / 100) * audio.duration;
+        audio.currentTime = seekTime;
+        if (fill) fill.style.width = `${e.target.value}%`;
       });
     });
 

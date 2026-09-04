@@ -6,6 +6,7 @@ import { LoginPage } from '../pages/login/LoginPage.js';
 import { RegisterPage } from '../pages/register/RegisterPage.js';
 import { NotFoundPage } from '../pages/notFound/NotFoundPage.js';
 import { FeedPage } from '../pages/feed/FeedPage.js';
+import { ContratacionesPage } from '../pages/contrataciones/ContratacionesPage.js';
 import { authService } from '../services/authService.js';
 import { AuthModal } from '../components/modal/AuthModal.js';
 
@@ -16,7 +17,7 @@ const routes = {
   '#/register':   { component: RegisterPage, protected: false, hideLayout: true },
   '#/feed':       { component: FeedPage, protected: true, hideLayout: false },
   '#/creatividad':{ component: HomePage, protected: true, hideLayout: false },
-  '#/contrataciones': { component: HomePage, protected: true, hideLayout: false },
+  '#/contrataciones': { component: ContratacionesPage, protected: true, hideLayout: false },
   '#/eventos':    { component: HomePage, protected: true, hideLayout: false },
   '#/404':        { component: NotFoundPage, protected: false, hideLayout: false },
 };

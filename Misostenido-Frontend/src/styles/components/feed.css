@@ -41,6 +41,32 @@
   height: 68px;
   background: linear-gradient(135deg, #0d6855 0%, #1a9974 50%, #0a4f3f 100%);
   position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.btn-change-profile-banner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.btn-change-profile-banner:hover {
+  transform: scale(1.1);
+  background: rgba(13, 104, 85, 0.85);
 }
 
 .profile-info {
@@ -2147,48 +2173,115 @@
 }
 
 /* ─── POST AUDIO PLAYER NATIVO ─── */
-.post-audio-card {
-  background: linear-gradient(135deg, #10221c 0%, #0d6855 100%);
-  border-radius: 12px;
-  padding: 16px 20px;
+/* ─── POST AUDIO PLAYER ESTILO WHATSAPP ─── */
+.post-audio-whatsapp-card {
+  background: linear-gradient(135deg, #0d6855 0%, #064e3b 100%);
+  border-radius: 16px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(13, 104, 85, 0.2);
-  margin-top: 6px;
+  box-shadow: 0 4px 16px rgba(13, 104, 85, 0.25);
+  width: 100%;
+  box-sizing: border-box;
+  margin: 6px 0;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.post-audio-icon {
-  width: 46px;
-  height: 46px;
+.post-audio-whatsapp-card.playing {
+  box-shadow: 0 6px 22px rgba(13, 104, 85, 0.45);
+}
+
+.wa-audio-play-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  color: #0d6855;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  cursor: pointer;
   flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  transition: transform 0.15s, background 0.15s;
 }
 
-.post-audio-body {
+.wa-audio-play-btn:hover {
+  transform: scale(1.06);
+  background: #f8fafc;
+}
+
+.wa-audio-play-btn:active {
+  transform: scale(0.96);
+}
+
+.wa-audio-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.post-audio-title {
+.wa-audio-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wa-audio-title {
   font-size: 0.88rem;
   font-weight: 700;
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
 }
 
-.post-audio-player-native {
+.wa-audio-timer {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.wa-audio-seek-container {
+  position: relative;
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.wa-audio-seek-track {
+  position: absolute;
   width: 100%;
-  height: 34px;
-  border-radius: 8px;
-  outline: none;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.wa-audio-seek-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 999px;
+  transition: width 0.1s linear;
+}
+
+.wa-audio-slider {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  z-index: 2;
 }
 
 
