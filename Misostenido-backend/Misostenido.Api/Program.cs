@@ -22,6 +22,7 @@ builder.Services.AddScoped<IContratacionService, ContratacionService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
 builder.Services.AddScoped<ISocialService, SocialService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ICreatividadService, CreatividadService>();
 
 // Configuración de Autenticación JWT
 string secretKey = builder.Configuration["JwtSettings:SecretKey"] 
@@ -105,6 +106,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

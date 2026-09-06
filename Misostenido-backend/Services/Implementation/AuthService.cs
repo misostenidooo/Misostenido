@@ -31,35 +31,45 @@ public class AuthService : IAuthService
             return new AuthResponseDto { Exito = false, Mensaje = "Todos los campos obligatorios deben ser completados." };
         }
 
-        string contrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.Contrasena);
-
-        using SqlConnection conn = new(_connectionString);
-        using SqlCommand cmd = new("dbo.sp_RegistrarUsuario", conn);
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.AddWithValue("@nombre", dto.Nombre.Trim());
-        cmd.Parameters.AddWithValue("@email", dto.Email.Trim().ToLower());
-        cmd.Parameters.AddWithValue("@contrasena_hash", contrasenaHash);
-        cmd.Parameters.AddWithValue("@tipo_perfil", dto.TipoPerfil.Trim().ToUpper());
-
-        await conn.OpenAsync();
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
-
-        if (await reader.ReadAsync())
+        try
         {
-            int idUsuario = Convert.ToInt32(reader["id_usuario"]);
-            string mensaje = reader["mensaje"]?.ToString() ?? string.Empty;
+            string contrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.Contrasena);
 
-            if (idUsuario <= 0)
+            using SqlConnection conn = new(_connectionString);
+            using SqlCommand cmd = new("dbo.sp_RegistrarUsuario", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@nombre", dto.Nombre.Trim());
+            cmd.Parameters.AddWithValue("@email", dto.Email.Trim().ToLower());
+            cmd.Parameters.AddWithValue("@contrasena_hash", contrasenaHash);
+            cmd.Parameters.AddWithValue("@tipo_perfil", dto.TipoPerfil.Trim().ToUpper());
+
+            await conn.OpenAsync();
+            using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
             {
-                return new AuthResponseDto { Exito = false, Mensaje = mensaje };
+                int idUsuario = Convert.ToInt32(reader["id_usuario"]);
+                string mensaje = reader["mensaje"]?.ToString() ?? string.Empty;
+
+                if (idUsuario <= 0)
+                {
+                    return new AuthResponseDto { Exito = false, Mensaje = mensaje };
+                }
+
+                return await LoginInternalAsync(dto.Email.Trim().ToLower(), idUsuario, dto.Nombre.Trim(), dto.TipoPerfil.Trim().ToUpper(), null, "USUARIO", ipAddress, userAgent);
             }
 
-            // Tras registrar exitosamente, procedemos a realizar el login para entregar el JWT
-            return await LoginInternalAsync(dto.Email.Trim().ToLower(), idUsuario, dto.Nombre.Trim(), dto.TipoPerfil.Trim().ToUpper(), null, "USUARIO", ipAddress, userAgent);
+            return new AuthResponseDto { Exito = false, Mensaje = "Error al procesar el registro en la base de datos." };
         }
-
-        return new AuthResponseDto { Exito = false, Mensaje = "Error al procesar el registro en la base de datos." };
+        catch (SqlException ex)
+        {
+            return new AuthResponseDto { Exito = false, Mensaje = $"Error de Base de Datos ({ex.Number}): {ex.Message}" };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResponseDto { Exito = false, Mensaje = $"Error en el servidor: {ex.Message}" };
+        }
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto, string ipAddress, string userAgent)
@@ -69,44 +79,55 @@ public class AuthService : IAuthService
             return new AuthResponseDto { Exito = false, Mensaje = "Correo y contraseña son requeridos." };
         }
 
-        using SqlConnection conn = new(_connectionString);
-        using SqlCommand cmd = new("dbo.sp_ObtenerUsuarioParaLogin", conn);
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.AddWithValue("@email", dto.Email.Trim().ToLower());
-
-        await conn.OpenAsync();
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
-
-        if (!await reader.ReadAsync())
+        try
         {
-            return new AuthResponseDto { Exito = false, Mensaje = "Credenciales incorrectas o usuario no encontrado." };
-        }
+            using SqlConnection conn = new(_connectionString);
+            using SqlCommand cmd = new("dbo.sp_ObtenerUsuarioParaLogin", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
 
-        bool estado = Convert.ToBoolean(reader["estado"]);
-        if (!estado)
+            cmd.Parameters.AddWithValue("@email", dto.Email.Trim().ToLower());
+
+            await conn.OpenAsync();
+            using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+            {
+                return new AuthResponseDto { Exito = false, Mensaje = "Credenciales incorrectas o usuario no encontrado." };
+            }
+
+            bool estado = Convert.ToBoolean(reader["estado"]);
+            if (!estado)
+            {
+                return new AuthResponseDto { Exito = false, Mensaje = "La cuenta se encuentra deshabilitada o suspendida." };
+            }
+
+            string dbHash = reader["contrasena_hash"]?.ToString() ?? string.Empty;
+            bool passwordValida = BCrypt.Net.BCrypt.Verify(dto.Contrasena, dbHash);
+
+            if (!passwordValida)
+            {
+                return new AuthResponseDto { Exito = false, Mensaje = "Credenciales incorrectas." };
+            }
+
+            int idUsuario = Convert.ToInt32(reader["id_usuario"]);
+            string nombre = reader["nombre"].ToString()!;
+            string email = reader["email"].ToString()!;
+            string tipoPerfil = reader["tipo_perfil"].ToString()!;
+            string? fotoPerfilUrl = reader["foto_perfil_url"] != DBNull.Value ? reader["foto_perfil_url"].ToString() : null;
+            string rolNombre = reader["rol_nombre"].ToString()!;
+
+            reader.Close();
+
+            return await LoginInternalAsync(email, idUsuario, nombre, tipoPerfil, fotoPerfilUrl, rolNombre, ipAddress, userAgent);
+        }
+        catch (SqlException ex)
         {
-            return new AuthResponseDto { Exito = false, Mensaje = "La cuenta se encuentra deshabilitada o suspendida." };
+            return new AuthResponseDto { Exito = false, Mensaje = $"Error de conexión a SQL Server ({ex.Number}): {ex.Message}" };
         }
-
-        string dbHash = reader["contrasena_hash"]?.ToString() ?? string.Empty;
-        bool passwordValida = BCrypt.Net.BCrypt.Verify(dto.Contrasena, dbHash);
-
-        if (!passwordValida)
+        catch (Exception ex)
         {
-            return new AuthResponseDto { Exito = false, Mensaje = "Credenciales incorrectas." };
+            return new AuthResponseDto { Exito = false, Mensaje = $"Error en el servidor: {ex.Message}" };
         }
-
-        int idUsuario = Convert.ToInt32(reader["id_usuario"]);
-        string nombre = reader["nombre"].ToString()!;
-        string email = reader["email"].ToString()!;
-        string tipoPerfil = reader["tipo_perfil"].ToString()!;
-        string? fotoPerfilUrl = reader["foto_perfil_url"] != DBNull.Value ? reader["foto_perfil_url"].ToString() : null;
-        string rolNombre = reader["rol_nombre"].ToString()!;
-
-        reader.Close();
-
-        return await LoginInternalAsync(email, idUsuario, nombre, tipoPerfil, fotoPerfilUrl, rolNombre, ipAddress, userAgent);
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto dto, string ipAddress, string userAgent)
