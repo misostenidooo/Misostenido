@@ -16,16 +16,39 @@ La solución está construida con una arquitectura desacoplada que integra:
 
 ## Ramas del Repositorio
 
-El proyecto está dividido en tres ramas, cada una con un propósito específico:
+Este proyecto está organizado en **3 ramas**, cada una con un propósito específico y bien definido:
 
-**`main` — Rama Principal**
-Es la rama de producción y entrega final. Contiene el proyecto completo integrado: backend, frontend y base de datos juntos. Todo lo que se quiera presentar o entregar oficialmente debe estar aquí.
+---
 
-**`backend` — Desarrollo del Backend**
-Esta rama fue creada exclusivamente para el desarrollo de la API en .NET 9. Aquí se trabaja todo lo relacionado con el servidor: los controladores que manejan las peticiones, los servicios con la lógica del negocio, los modelos de datos, la autenticación con JWT y la conexión a SQL Server mediante procedimientos almacenados.
+### `main` — Rama Principal (Producción)
 
-**`frontend` — Desarrollo del Frontend**
-Esta rama contiene todo el trabajo de la interfaz de usuario. Se desarrolló aquí la aplicación web (SPA) en JavaScript, con todas las vistas y módulos del sistema: el feed, creatividad, contrataciones, eventos, perfiles y más. También incluye los estilos CSS, los componentes reutilizables y la integración con Supabase para el almacenamiento de archivos multimedia.
+Esta es la rama **oficial y estable** del proyecto. Contiene el sistema completo e integrado, listo para ser presentado o desplegado. Aquí se unen el trabajo del backend, el frontend y los scripts de base de datos en una sola versión funcional. **No se trabaja directamente en esta rama**, solo se integran los cambios desde `backend` y `frontend` cuando están listos.
+
+---
+
+### `backend` — Rama de Desarrollo del Servidor
+
+Esta rama contiene todo lo relacionado con el **lado del servidor** del proyecto:
+- La API REST desarrollada en **.NET 9 (C#)**, con todos sus controladores (Auth, Feed, Creatividad, Contrataciones, Eventos, Social, Admin, Usuario).
+- La capa de servicios con la lógica de negocio.
+- Los modelos de datos y DTOs para la comunicación entre capas.
+- La configuración de seguridad con **JWT** y encriptación **BCrypt**.
+- Los scripts y backups de la **base de datos SQL Server**.
+
+Es la rama donde el equipo de backend realiza sus cambios, pruebas y mejoras antes de integrarlos a `main`.
+
+---
+
+### `frontend` — Rama de Desarrollo de la Interfaz
+
+Esta rama contiene todo lo relacionado con la **experiencia visual y la interacción del usuario**:
+- La aplicación web SPA (Single Page Application) construida con **HTML5, JavaScript ES6+ y CSS3 Vanilla**.
+- Todos los módulos visuales: Home, Feed, Creatividad, Contrataciones, Eventos, Perfil, Login y Registro.
+- Los componentes reutilizables como Navbar, Footer y modales.
+- La integración con el almacenamiento multimedia en la nube (**Supabase Storage**) para subir y mostrar audios, videos e imágenes.
+- Los estilos, animaciones y diseño general de la plataforma.
+
+Es la rama donde el equipo de frontend trabaja de forma independiente sin afectar el servidor.
 
 ---
 
