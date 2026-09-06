@@ -1,0 +1,1176 @@
+/* ================================================================
+   creatividad.css — Estilos del módulo Creatividad de Misostenido
+   Directorio de Negocios, Tiendas, Estudios, Cursos & Asesorías
+   ================================================================ */
+
+/* ── Página principal ─────────────────────────────────────────── */
+.creatividad-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding-top: 0;
+}
+
+/* ── Hero Creatividad ─────────────────────────────────────────── */
+.creatividad-hero {
+  background: linear-gradient(135deg, rgba(8, 28, 20, 0.95) 0%, rgba(13, 104, 85, 0.90) 55%, rgba(6, 78, 64, 0.96) 100%),
+    url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1600&q=80')
+    center / cover no-repeat;
+  padding: 56px 24px 64px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.creatividad-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 140%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.creatividad-hero-content {
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.creatividad-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: #fef3c7;
+  margin-bottom: 18px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.creatividad-hero-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+}
+
+.creatividad-hero-subtitle {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 32px;
+  font-weight: 400;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+/* Buscador Hero */
+.creatividad-search-box {
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 10px 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  max-width: 900px;
+  margin: 0 auto;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.creatividad-search-box:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 42px rgba(13, 104, 85, 0.28);
+}
+
+.cr-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.cr-search-field svg {
+  color: #0d6855;
+  flex-shrink: 0;
+}
+
+.cr-search-field input,
+.cr-search-field select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #0f2e26;
+  outline: none;
+  font-family: inherit;
+}
+
+.cr-search-field input::placeholder {
+  color: #94a3b8;
+}
+
+.cr-search-divider {
+  width: 1px;
+  height: 32px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.btn-cr-search {
+  background: #0d6855;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 24px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-cr-search:hover {
+  background: #094e40;
+  transform: scale(1.02);
+}
+
+/* ── Categorías Ribbon / Quick Filter (NO STICKY - Flujo natural) ── */
+.creatividad-categories-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  scrollbar-width: thin;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.creatividad-categories-ribbon::-webkit-scrollbar {
+  height: 4px;
+}
+
+.creatividad-categories-ribbon::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.cr-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.cr-cat-chip:hover {
+  background: #e6f4f1;
+  border-color: #0d6855;
+  color: #0d6855;
+}
+
+.cr-cat-chip.active {
+  background: #0d6855;
+  border-color: #0d6855;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(13, 104, 85, 0.25);
+}
+
+.cr-cat-chip .cr-chip-icon {
+  font-size: 1.1rem;
+}
+
+/* ── Contenido Principal ──────────────────────────────────────── */
+.creatividad-main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+/* Barra superior de herramientas */
+.creatividad-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.creatividad-views-tabs {
+  display: inline-flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.cr-view-tab {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.cr-view-tab.active {
+  background: #fff;
+  color: #0d6855;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.creatividad-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-crear-curso-quick {
+  background: linear-gradient(135deg, #059669 0%, #0d6855 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-crear-curso-quick:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.4);
+  background: linear-gradient(135deg, #047857 0%, #064e40 100%);
+}
+
+.btn-crear-negocio {
+  background: linear-gradient(135deg, #0d6855 0%, #094e40 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(13, 104, 85, 0.25);
+}
+
+.btn-crear-negocio:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 104, 85, 0.35);
+}
+
+/* Filtros secundarios y conteo */
+.creatividad-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.cr-count-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f2e26;
+}
+
+.cr-filter-toggles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cr-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.cr-checkbox-label input[type="checkbox"] {
+  accent-color: #0d6855;
+  width: 16px;
+  height: 16px;
+}
+
+.sort-select-cr {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #334155;
+  outline: none;
+}
+
+/* ── Grid de Negocios ─────────────────────────────────────────── */
+.creatividad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+/* Card de Negocio */
+.cr-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+}
+
+.cr-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(13, 104, 85, 0.12);
+  border-color: #cbd5e1;
+}
+
+/* Portada / Cover */
+.cr-card-cover {
+  height: 170px;
+  position: relative;
+  background: #0f2e26;
+  overflow: hidden;
+}
+
+.cr-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.cr-card:hover .cr-card-cover img {
+  transform: scale(1.05);
+}
+
+.cr-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0d6855 0%, #064e40 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  gap: 6px;
+}
+
+.cr-cover-placeholder .cr-ph-icon {
+  font-size: 2.2rem;
+}
+
+.cr-cover-placeholder .cr-ph-cat {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+/* Badges sobre la portada */
+.cr-badge-cat {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(15, 46, 38, 0.85);
+  color: #f8fafc;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cr-badge-destacado {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #d97706;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+}
+
+.btn-cr-favorite-card {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-cr-favorite-card:hover {
+  transform: scale(1.1);
+  color: #e11d48;
+}
+
+.btn-cr-favorite-card.active {
+  color: #e11d48;
+  background: #ffe4e6;
+}
+
+/* Cuerpo de la Card */
+.cr-card-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cr-card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.cr-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f2e26;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.cr-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  color: #0d6855;
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.cr-card-slogan {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #d97706;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.cr-card-desc {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.45;
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Meta información (Ciudad, Precio, Calificación) */
+.cr-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cr-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cr-meta-item svg {
+  color: #0d6855;
+  flex-shrink: 0;
+}
+
+.cr-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f2e26;
+  margin-top: 4px;
+}
+
+.cr-stars {
+  color: #f59e0b;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cr-rating-count {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.cr-card-footer {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn-cr-ver-detalle {
+  background: #f1f5f9;
+  color: #0d6855;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cr-ver-detalle:hover {
+  background: #0d6855;
+  border-color: #0d6855;
+  color: #ffffff;
+}
+
+/* ── Badges de Gratuidad & Precios Nicaragua ─────────────────── */
+.cr-badge-gratis {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.cr-badge-gratis-mini {
+  background: #10b981;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.cr-precio-num {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0d6855;
+}
+
+.cr-precio-num small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.cr-precio-consultar {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* ── Botón Ver Video Clase ────────────────────────────────────── */
+.btn-cr-ver-video-curso {
+  background: linear-gradient(135deg, #0d6855 0%, #047857 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(13, 104, 85, 0.2);
+}
+
+.btn-cr-ver-video-curso:hover {
+  background: #065f46;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(13, 104, 85, 0.3);
+}
+
+/* ── Skeletons & Empty State ──────────────────────────────────── */
+.cr-grid-loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+  grid-column: 1 / -1;
+}
+
+.cr-sk-card {
+  height: 380px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: cr-shimmer 1.5s infinite;
+  border-radius: 16px;
+}
+
+@keyframes cr-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.cr-empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 64px 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px dashed #cbd5e1;
+}
+
+.cr-empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+}
+
+.cr-empty-state h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f2e26;
+  margin-bottom: 8px;
+}
+
+.cr-empty-state p {
+  color: #64748b;
+  font-size: 0.95rem;
+  max-width: 480px;
+  margin: 0 auto 24px;
+}
+
+/* ── Modales Creatividad (Crear / Detalle / Video) ────────────── */
+.cr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 24, 19, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.cr-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  animation: cr-modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.cr-detalle-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  animation: cr-modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.cr-video-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  animation: cr-modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.cr-video-container {
+  padding: 20px 24px 24px;
+}
+
+@keyframes cr-modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.cr-modal-header {
+  padding: 20px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.cr-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f2e26;
+  margin: 0;
+}
+
+.cr-modal-close {
+  background: #f1f5f9;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cr-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f2e26;
+}
+
+.cr-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Formularios de Crear Negocio */
+.cr-form-group {
+  margin-bottom: 18px;
+}
+
+.cr-form-group label {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.cr-form-group input,
+.cr-form-group select,
+.cr-form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #0f2e26;
+  background: #f8fafc;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cr-form-group input:focus,
+.cr-form-group select:focus,
+.cr-form-group textarea:focus {
+  border-color: #0d6855;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(13, 104, 85, 0.12);
+}
+
+.cr-form-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cr-form-row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.cr-dropzone {
+  border: 2px dashed #94a3b8;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cr-dropzone:hover {
+  border-color: #0d6855;
+  background: #e6f4f1;
+}
+
+.cr-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.btn-cr-cancel {
+  background: #fff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.btn-cr-submit {
+  background: #0d6855;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(13, 104, 85, 0.25);
+}
+
+.btn-cr-submit:hover {
+  background: #094e40;
+}
+
+/* ── Estilos de Detalle de Negocio Modal ───────────────────────── */
+.cr-det-hero {
+  position: relative;
+  height: 220px;
+  background: #0f2e26;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cr-det-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cr-det-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 46, 38, 0.95) 0%, rgba(15, 46, 38, 0.4) 50%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+}
+
+.cr-det-header-info {
+  color: #fff;
+  position: relative;
+  z-index: 2;
+}
+
+.cr-det-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.cr-det-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #fff;
+}
+
+.cr-det-slogan {
+  font-size: 0.92rem;
+  color: #fbbf24;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Tabs de navegación en Detalle */
+.cr-det-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.cr-det-tab-btn {
+  padding: 14px 18px;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.cr-det-tab-btn.active {
+  color: #0d6855;
+  border-bottom-color: #0d6855;
+}
+
+.cr-det-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Tarjetas de Cursos en Detalle */
+.cr-cursos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.cr-curso-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cr-curso-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f2e26;
+  margin-bottom: 6px;
+}
+
+.cr-curso-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cr-curso-tag {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cr-curso-desc {
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.cr-curso-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cr-curso-precio {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0d6855;
+}
+
+/* Reseñas */
+.cr-resenas-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cr-resena-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.cr-resena-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cr-resena-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cr-resena-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cr-resena-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f2e26;
+}
+
+.cr-resena-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.cr-resena-comment {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+/* Star rating input */
+.cr-star-rating-input {
+  display: flex;
+  gap: 8px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #cbd5e1;
+}
+
+.cr-star-rating-input .star.active {
+  color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .creatividad-hero-title {
+    font-size: 1.8rem;
+  }
+  .creatividad-search-box {
+    flex-direction: column;
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .cr-search-divider {
+    display: none;
+  }
+  .btn-cr-search {
+    width: 100%;
+    justify-content: center;
+  }
+  .cr-form-row2, .cr-form-row3 {
+    grid-template-columns: 1fr;
+  }
+}
