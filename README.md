@@ -14,46 +14,41 @@ La solución está construida con una arquitectura desacoplada que integra:
 
 ---
 
-## Estructura y Gestión de Ramas (Git)
+## Ramas del Repositorio
 
-El repositorio sigue un modelo de ramas organizado para separar las responsabilidades de desarrollo:
+Este proyecto está organizado en **3 ramas**, cada una con un propósito específico y bien definido:
 
-| Rama | Propósito | Descripción |
-| :--- | :--- | :--- |
-| **`main`** | **Producción / Principal** | Versión unificada y lista para entrega del proyecto completo (Backend, Frontend y Scripts de Base de Datos integrados). |
-| **`backend`** | **Desarrollo Backend** | Rama de trabajo para la API REST en .NET 9, controladores, servicios, modelos DTOs, seguridad JWT y scripts de SQL Server. |
-| **`frontend`** | **Desarrollo Frontend** | Rama de trabajo para la interfaz de usuario, componentes, vistas SPA, estilos CSS, lógica de cliente e integración con Supabase. |
+---
 
-### Flujo de Trabajo con Ramas
+### `main` — Rama Principal (Producción)
 
-1. **Trabajar en el Backend:**
-   ```bash
-   git checkout backend
-   git pull origin backend
-   # Realizar cambios y guardar:
-   git add .
-   git commit -m "feat(modulo): descripcion del cambio"
-   git push origin backend
-   ```
+Esta es la rama **oficial y estable** del proyecto. Contiene el sistema completo e integrado, listo para ser presentado o desplegado. Aquí se unen el trabajo del backend, el frontend y los scripts de base de datos en una sola versión funcional. **No se trabaja directamente en esta rama**, solo se integran los cambios desde `backend` y `frontend` cuando están listos.
 
-2. **Trabajar en el Frontend:**
-   ```bash
-   git checkout frontend
-   git pull origin frontend
-   # Realizar cambios y guardar:
-   git add .
-   git commit -m "feat(ui): descripcion del cambio"
-   git push origin frontend
-   ```
+---
 
-3. **Integrar cambios a la rama principal (`main`):**
-   ```bash
-   git checkout main
-   git pull origin main
-   git merge backend
-   git merge frontend
-   git push origin main
-   ```
+### `backend` — Rama de Desarrollo del Servidor
+
+Esta rama contiene todo lo relacionado con el **lado del servidor** del proyecto:
+- La API REST desarrollada en **.NET 9 (C#)**, con todos sus controladores (Auth, Feed, Creatividad, Contrataciones, Eventos, Social, Admin, Usuario).
+- La capa de servicios con la lógica de negocio.
+- Los modelos de datos y DTOs para la comunicación entre capas.
+- La configuración de seguridad con **JWT** y encriptación **BCrypt**.
+- Los scripts y backups de la **base de datos SQL Server**.
+
+Es la rama donde el equipo de backend realiza sus cambios, pruebas y mejoras antes de integrarlos a `main`.
+
+---
+
+### `frontend` — Rama de Desarrollo de la Interfaz
+
+Esta rama contiene todo lo relacionado con la **experiencia visual y la interacción del usuario**:
+- La aplicación web SPA (Single Page Application) construida con **HTML5, JavaScript ES6+ y CSS3 Vanilla**.
+- Todos los módulos visuales: Home, Feed, Creatividad, Contrataciones, Eventos, Perfil, Login y Registro.
+- Los componentes reutilizables como Navbar, Footer y modales.
+- La integración con el almacenamiento multimedia en la nube (**Supabase Storage**) para subir y mostrar audios, videos e imágenes.
+- Los estilos, animaciones y diseño general de la plataforma.
+
+Es la rama donde el equipo de frontend trabaja de forma independiente sin afectar el servidor.
 
 ---
 
