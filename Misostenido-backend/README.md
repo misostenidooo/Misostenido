@@ -1,11 +1,21 @@
-# 🎵 MiSostenido — Backend (.NET 9 Web API)
-> **Proyecto Hackathon — Grupo Código Da Vinci**
+# MiSostenido — Backend (.NET 9 Web API)
+> Proyecto Hackathon — Grupo Código Da Vinci
 
 Este directorio contiene la solución y servicios de backend para la plataforma **MiSostenido**.
 
 ---
 
-## 🛠️ Tecnologías y Arquitectura
+## Estructura de Ramas del Repositorio
+
+| Rama | Propósito |
+| :--- | :--- |
+| **`main`** | Versión unificada y lista para producción (Backend + Frontend + Base de Datos). |
+| **`backend`** | Rama activa para el desarrollo de la API .NET 9, controladores, servicios y base de datos. |
+| **`frontend`** | Rama para el desarrollo de la interfaz de usuario en JavaScript / CSS. |
+
+---
+
+## Tecnologías y Arquitectura
 - **Framework:** .NET 9.0 (ASP.NET Core Web API)
 - **Base de Datos:** Microsoft SQL Server (T-SQL, Stored Procedures)
 - **Seguridad:** JWT Bearer Authentication (`Microsoft.AspNetCore.Authentication.JwtBearer`) + Encriptación de contraseñas con `BCrypt.Net-Next`
@@ -18,10 +28,10 @@ Este directorio contiene la solución y servicios de backend para la plataforma 
 
 ---
 
-## ⚙️ Pasos de Instalación y Ejecución
+## Pasos de Instalación y Ejecución
 
 ### 1. Base de Datos (SQL Server)
-Asegúrate de restaurar o ejecutar la base de datos ubicada en la carpeta `Base de datos de misostenido/` antes de iniciar la API.
+Asegúrate de restaurar el backup o ejecutar el script ubicado en la carpeta `Base de datos de misostenido/` antes de iniciar la API.
 
 ### 2. Configurar Cadena de Conexión
 En el archivo [`Misostenido.Api/appsettings.json`](file:///Misostenido.Api/appsettings.json), edita tu nombre de servidor SQL:
