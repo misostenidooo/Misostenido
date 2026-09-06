@@ -111,6 +111,7 @@ export const LoginPage = {
                     class="form-control"
                     placeholder="Usuario o Gmail"
                     autocomplete="off"
+                    style="padding-left: 52px !important;"
                     readonly
                     required
                   />
@@ -133,6 +134,7 @@ export const LoginPage = {
                     class="form-control"
                     placeholder="Contraseña"
                     autocomplete="new-password"
+                    style="padding-left: 52px !important; padding-right: 48px !important;"
                     readonly
                     required
                   />

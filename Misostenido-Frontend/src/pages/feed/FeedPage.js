@@ -49,7 +49,7 @@ export const FeedPage = {
                 <div class="pstat-divider"></div>
                 <div class="pstat"><span class="pstat-num">45</span><span class="pstat-label">Colabos</span></div>
               </div>
-              <a href="#/" class="btn-view-profile">Ver mi perfil completo →</a>
+              <a href="#/perfil" class="btn-view-profile">Ver mi perfil completo →</a>
             </div>
           </div>
 
@@ -491,6 +491,26 @@ export const FeedPage = {
 
     postsList.innerHTML = posts.map(p => this.renderPost(p)).join('');
     this.bindPostEvents(container);
+
+    // Auto-scroll y resaltado si se recibe un ID por parámetro (ej: #/feed?id=5)
+    const hash = window.location.hash || '';
+    const queryParams = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
+    const targetPostId = queryParams.get('id') || queryParams.get('post') || queryParams.get('highlight');
+    if (targetPostId) {
+      setTimeout(() => {
+        const postEl = container.querySelector(`#post-${targetPostId}`) || container.querySelector(`[data-post-id="${targetPostId}"]`);
+        if (postEl) {
+          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          postEl.style.transition = 'box-shadow 0.4s ease, transform 0.4s ease';
+          postEl.style.boxShadow = '0 0 0 4px #0d6855, 0 12px 28px rgba(13, 104, 85, 0.35)';
+          postEl.style.transform = 'scale(1.02)';
+          setTimeout(() => {
+            postEl.style.boxShadow = '';
+            postEl.style.transform = '';
+          }, 3500);
+        }
+      }, 250);
+    }
   },
 
   // ─────────────────────────────────────────────
@@ -562,25 +582,28 @@ export const FeedPage = {
   // GESTIÓN DE VISTA PREVIA DE ARCHIVOS
   // ─────────────────────────────────────────────
   renderSelectedFilesPreview(container) {
-    const dropArea = container.querySelector('#fb-drop-area');
-    const previewsGrid = container.querySelector('#fb-previews-grid');
-    const addMoreRow = container.querySelector('#fb-add-more-row');
-    const modalSubmit = container.querySelector('#btn-fb-submit');
-    const textarea = container.querySelector('#fb-modal-textarea');
+    const modalEl = document.querySelector('#fb-modal-overlay') || container;
+    const dropArea = modalEl.querySelector('#fb-drop-area');
+    const previewsGrid = modalEl.querySelector('#fb-previews-grid');
+    const addMoreRow = modalEl.querySelector('#fb-add-more-row');
+    const modalSubmit = modalEl.querySelector('#btn-fb-submit');
+    const textarea = modalEl.querySelector('#fb-modal-textarea');
+
+    if (!dropArea || !previewsGrid) return;
 
     if (this._selectedFiles.length === 0) {
       dropArea.style.display = 'block';
       previewsGrid.style.display = 'none';
       previewsGrid.innerHTML = '';
-      addMoreRow.style.display = 'none';
-      modalSubmit.disabled = textarea.value.trim().length === 0;
+      if (addMoreRow) addMoreRow.style.display = 'none';
+      if (modalSubmit && textarea) modalSubmit.disabled = textarea.value.trim().length === 0;
       return;
     }
 
     dropArea.style.display = 'none';
     previewsGrid.style.display = 'grid';
-    addMoreRow.style.display = 'flex';
-    modalSubmit.disabled = false;
+    if (addMoreRow) addMoreRow.style.display = 'flex';
+    if (modalSubmit) modalSubmit.disabled = false;
 
     // Clase según cantidad
     const count = this._selectedFiles.length;
@@ -662,31 +685,52 @@ export const FeedPage = {
         }
       }
     });
-    const modalOverlay = container.querySelector('#fb-modal-overlay');
-    const mediaContainer = container.querySelector('#fb-media-container');
-    const fileInput = container.querySelector('#fb-file-input');
-    const dropArea = container.querySelector('#fb-drop-area');
-    const textarea = container.querySelector('#fb-modal-textarea');
-    const modalSubmit = container.querySelector('#btn-fb-submit');
+    const modalOverlay = container.querySelector('#fb-modal-overlay') || document.querySelector('#fb-modal-overlay');
+    if (modalOverlay && modalOverlay.parentNode !== document.body) {
+      document.body.appendChild(modalOverlay);
+    }
+    const mediaContainer = modalOverlay?.querySelector('#fb-media-container');
+    const fileInput = modalOverlay?.querySelector('#fb-file-input');
+    const dropArea = modalOverlay?.querySelector('#fb-drop-area');
+    const textarea = modalOverlay?.querySelector('#fb-modal-textarea');
+    const modalSubmit = modalOverlay?.querySelector('#btn-fb-submit');
 
     const openModal = (autoOpenMedia = false) => {
       if (!isAuth) {
         AuthModal.show('¡Únete a Misostenido!', 'Debes iniciar sesión para publicar en el feed.');
         return;
       }
-      modalOverlay.style.display = 'flex';
-      if (autoOpenMedia) {
+      if (modalOverlay) {
+        modalOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      if (autoOpenMedia && mediaContainer) {
         mediaContainer.style.display = 'block';
       }
-      textarea.focus();
+      textarea?.focus();
     };
 
     const closeModal = () => {
-      modalOverlay.style.display = 'none';
+      if (modalOverlay) {
+        modalOverlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
       this._selectedFiles = [];
-      textarea.value = '';
-      mediaContainer.style.display = 'none';
-      this.renderSelectedFilesPreview(container);
+      this._selectedTipoMedia = 'FOTO';
+      if (textarea) textarea.value = '';
+      if (mediaContainer) mediaContainer.style.display = 'none';
+      if (dropArea) dropArea.style.display = 'block';
+      const previewList = modalOverlay?.querySelector('#fb-previews-list');
+      if (previewList) {
+        previewList.style.display = 'none';
+        previewList.innerHTML = '';
+      }
+      const previewsGrid = modalOverlay?.querySelector('#fb-previews-grid');
+      if (previewsGrid) {
+        previewsGrid.style.display = 'none';
+        previewsGrid.innerHTML = '';
+      }
+      if (modalSubmit) modalSubmit.disabled = false;
     };
 
     // Triggers en el Feed
@@ -705,37 +749,37 @@ export const FeedPage = {
     });
 
     // Cerrar modal
-    container.querySelector('#fb-modal-close')?.addEventListener('click', closeModal);
+    modalOverlay?.querySelector('#fb-modal-close')?.addEventListener('click', closeModal);
     modalOverlay?.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
     // Botón verde (foto/video) dentro del modal para abrir dropzone
-    container.querySelector('#btn-tool-photo')?.addEventListener('click', () => {
-      mediaContainer.style.display = 'block';
-      fileInput.click();
+    modalOverlay?.querySelector('#btn-tool-photo')?.addEventListener('click', () => {
+      if (mediaContainer) mediaContainer.style.display = 'block';
+      fileInput?.click();
     });
 
     // Botón de audio/música también abre el mismo selector (acepta image/*,video/*,audio/*)
-    container.querySelector('.fb-tool-audio')?.addEventListener('click', () => {
-      mediaContainer.style.display = 'block';
-      fileInput.click();
+    modalOverlay?.querySelector('.fb-tool-audio')?.addEventListener('click', () => {
+      if (mediaContainer) mediaContainer.style.display = 'block';
+      fileInput?.click();
     });
 
     // Botón cerrar zona de drop
-    container.querySelector('#fb-close-media-zone')?.addEventListener('click', (e) => {
+    modalOverlay?.querySelector('#fb-close-media-zone')?.addEventListener('click', (e) => {
       e.stopPropagation();
       this._selectedFiles = [];
-      mediaContainer.style.display = 'none';
+      if (mediaContainer) mediaContainer.style.display = 'none';
       this.renderSelectedFilesPreview(container);
     });
 
     // Click en la zona de drop abre el selector de archivos
     dropArea?.addEventListener('click', () => {
-      fileInput.click();
+      fileInput?.click();
     });
 
     // Botón "Agregar más fotos o videos"
-    container.querySelector('#btn-fb-add-more')?.addEventListener('click', () => {
-      fileInput.click();
+    modalOverlay?.querySelector('#btn-fb-add-more')?.addEventListener('click', () => {
+      fileInput?.click();
     });
 
     // Manejar archivos seleccionados desde el input file

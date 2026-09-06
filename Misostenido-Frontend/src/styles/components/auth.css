@@ -22,7 +22,7 @@
    PANEL IZQUIERDO — Imagen + overlay oscuro + contenido
    ===================================================== */
 .auth-hero-panel {
-  flex: 1.05;
+  flex: 1;
   position: relative;
   background-size: cover;
   background-position: center;
@@ -372,7 +372,7 @@
    PANEL DERECHO — Fondo menta + tarjeta blanca flotante
    ===================================================== */
 .auth-form-panel {
-  flex: 0.95;
+  flex: 1.08;
   background-color: #c8dcd7;
   background-image:
     radial-gradient(ellipse at 80% 10%, rgba(13, 104, 85, 0.13) 0%, transparent 50%),
@@ -381,61 +381,62 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 20px;
+  padding: 12px 24px;
   overflow-y: auto;
 }
 
 /* ===== TARJETA FLOTANTE BLANCA ===== */
 .auth-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   background: #ffffff;
   border-radius: 18px;
-  padding: 24px 28px 20px;
+  padding: 18px 26px 16px;
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.04),
     0 12px 32px rgba(10, 34, 27, 0.10);
+  box-sizing: border-box;
 }
 
 .auth-card-header {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 /* Logo oficial en tarjeta */
 .auth-brand-logo-wrap {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   display: inline-block;
 }
 
 .auth-logo-img {
-  height: 52px;
+  height: 42px;
   width: auto;
   object-fit: contain;
 }
 
 .header-icon-pill {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   background: #e6f4f1;
   color: #0d6855;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  margin-bottom: 14px;
+  font-size: 15px;
+  margin-bottom: 10px;
 }
 
 .auth-card-title {
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: #0f2e26;
-  margin: 0 0 3px 0;
+  margin: 0 0 2px 0;
   letter-spacing: -0.4px;
 }
 
 .auth-card-subtitle {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: #64748b;
   margin: 0;
 }
@@ -444,7 +445,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 9px;
 }
 
 /* Alerta de error */
@@ -453,20 +454,20 @@
   color: #b91c1c;
   border: 1px solid #fecaca;
   border-left: 4px solid #ef4444;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 4px;
 }
 
 .form-label {
-  font-size: 0.83rem;
+  font-size: 0.79rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: 0.1px;
@@ -502,25 +503,46 @@
   border-radius: 10px 0 0 10px;
 }
 
-.input-icon {
+.input-wrapper .input-icon {
   position: absolute;
-  left: 14px;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
   color: #64748b;
   display: flex;
   align-items: center;
+  justify-content: center;
   pointer-events: none;
-  z-index: 1;
+  z-index: 5;
 }
 
+.input-wrapper .input-icon svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+.input-wrapper .form-control,
+.input-wrapper input,
+.auth-form input.form-control,
 .form-control {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 12px 42px 12px 44px;
-  font-size: 0.93rem;
-  color: #1e293b;
-  font-family: inherit;
+  width: 100% !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding-left: 48px !important;
+  padding-right: 44px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  font-size: 0.91rem !important;
+  line-height: normal !important;
+  color: #1e293b !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
 }
 
 /* Placeholder desaparece al hacer focus */
@@ -545,17 +567,27 @@
 /* Botón ojo (toggle contraseña) */
 .btn-toggle-password {
   position: absolute;
-  right: 12px;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
   background: transparent;
   border: none;
   color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 0;
   cursor: pointer;
   transition: color 0.2s;
-  z-index: 1;
+  z-index: 2;
+}
+
+.btn-toggle-password svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .btn-toggle-password:hover {
@@ -567,7 +599,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   margin-top: -2px;
 }
 
@@ -582,8 +614,8 @@
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   accent-color: #0d6855;
   cursor: pointer;
 }
@@ -591,7 +623,7 @@
 .link-forgot {
   color: #0d6855;
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   text-decoration: none;
 }
 
@@ -606,8 +638,8 @@
   color: #ffffff;
   border: none;
   border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 0.97rem;
+  padding: 11px 18px;
+  font-size: 0.92rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -639,7 +671,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .auth-divider::before,
@@ -651,7 +683,7 @@
 }
 
 .auth-divider span {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.8px;
   color: #94a3b8;
@@ -668,8 +700,8 @@
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 20px;
-  font-size: 0.9rem;
+  padding: 9px 16px;
+  font-size: 0.86rem;
   font-weight: 600;
   color: #334155;
   cursor: pointer;
@@ -684,9 +716,9 @@
 /* Footer de la tarjeta */
 .auth-footer-link {
   text-align: center;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .link-highlight {
@@ -700,24 +732,24 @@
 }
 
 .auth-sub-link {
-  font-size: 0.76rem;
+  font-size: 0.73rem;
   color: #0d6855;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 /* Copyright debajo de la tarjeta */
 .auth-copyright {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #4a6e63;
-  margin-top: 20px;
+  margin-top: 8px;
 }
 
 /* ===== Selector de perfil (Register) ===== */
 .profile-type-selector {
   display: flex;
   background: #f1f5f9;
-  padding: 4px;
+  padding: 3px;
   border-radius: 10px;
   gap: 4px;
 }
@@ -726,9 +758,9 @@
   flex: 1;
   background: transparent;
   color: #64748b;
-  font-size: 0.79rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  padding: 9px 4px;
+  padding: 7px 4px;
   border-radius: 7px;
   border: none;
   cursor: pointer;

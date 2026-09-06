@@ -7,6 +7,10 @@ import { RegisterPage } from '../pages/register/RegisterPage.js';
 import { NotFoundPage } from '../pages/notFound/NotFoundPage.js';
 import { FeedPage } from '../pages/feed/FeedPage.js';
 import { ContratacionesPage } from '../pages/contrataciones/ContratacionesPage.js';
+import { EventosPage } from '../pages/eventos/EventosPage.js';
+import { CreatividadPage } from '../pages/creatividad/CreatividadPage.js';
+import { PerfilPage } from '../pages/perfil/PerfilPage.js';
+import { DetallePage } from '../pages/detalle/DetallePage.js';
 import { authService } from '../services/authService.js';
 import { AuthModal } from '../components/modal/AuthModal.js';
 
@@ -16,9 +20,11 @@ const routes = {
   '#/login':      { component: LoginPage, protected: false, hideLayout: true },
   '#/register':   { component: RegisterPage, protected: false, hideLayout: true },
   '#/feed':       { component: FeedPage, protected: true, hideLayout: false },
-  '#/creatividad':{ component: HomePage, protected: true, hideLayout: false },
+  '#/creatividad':{ component: CreatividadPage, protected: true, hideLayout: false },
   '#/contrataciones': { component: ContratacionesPage, protected: true, hideLayout: false },
-  '#/eventos':    { component: HomePage, protected: true, hideLayout: false },
+  '#/eventos':    { component: EventosPage, protected: true, hideLayout: false },
+  '#/perfil':     { component: PerfilPage, protected: true, hideLayout: false },
+  '#/detalle':    { component: DetallePage, protected: false, hideLayout: false },
   '#/404':        { component: NotFoundPage, protected: false, hideLayout: false },
 };
 
@@ -28,6 +34,7 @@ function resolveRoute() {
   const footerOutlet = document.querySelector('#footer-outlet');
 
   const rawHash = window.location.hash || '#/';
+  // Soporte para rutas con query string (ej: #/detalle?tipo=post&id=5)
   const cleanHash = rawHash.split('?')[0];
 
   let routeConfig = routes[cleanHash];

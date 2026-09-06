@@ -99,6 +99,7 @@ export const RegisterPage = {
                     class="form-control" 
                     placeholder="Nombre completo" 
                     autocomplete="off"
+                    style="padding-left: 52px !important;"
                     readonly
                     required 
                   />
@@ -117,6 +118,7 @@ export const RegisterPage = {
                     class="form-control" 
                     placeholder="correo@gmail.com" 
                     autocomplete="off"
+                    style="padding-left: 52px !important;"
                     readonly
                     required 
                   />
@@ -135,6 +137,7 @@ export const RegisterPage = {
                     class="form-control" 
                     placeholder="Contraseña" 
                     autocomplete="new-password"
+                    style="padding-left: 52px !important; padding-right: 48px !important;"
                     readonly
                     required 
                   />

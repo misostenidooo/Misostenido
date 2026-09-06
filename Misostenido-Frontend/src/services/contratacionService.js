@@ -58,23 +58,23 @@ export const contratacionService = {
       Ubicacion: ubicacion ? ubicacion.trim() : 'Nicaragua'
     });
 
-    const idOferta = resOferta?.id || resOferta?.idOfertaServicio;
+    const idOferta = resOferta?.id ?? resOferta?.Id ?? resOferta?.idOfertaServicio ?? resOferta?.IdOfertaServicio;
 
-    // 2. Subir archivos a Supabase y asociarlos
+    // 2. Subir archivos multimedia (Audio, Video, Fotos) y asociarlos a la oferta
     if (idOferta && files && files.length > 0) {
       for (const file of files) {
         try {
           const resUp = await storageService.uploadFile(file);
           if (resUp && resUp.url) {
             await api.post('/Contratacion/media', {
-              IdOferta: idOferta,
+              IdOferta: parseInt(idOferta, 10),
               Tipo: resUp.tipo || 'FOTO',
               Url: resUp.url,
               Descripcion: file.name
             });
           }
         } catch (e) {
-          console.warn('[contratacionService] Error al adjuntar media a la oferta:', e);
+          console.error('[contratacionService] Error al adjuntar media a la oferta:', e);
         }
       }
     }
@@ -131,7 +131,7 @@ export const contratacionService = {
       Ubicacion: ubicacion ? ubicacion.trim() : 'Nicaragua'
     });
 
-    const idSolicitud = resSol?.id || resSol?.idSolicitudContratacion;
+    const idSolicitud = resSol?.id ?? resSol?.Id ?? resSol?.idSolicitudContratacion ?? resSol?.IdSolicitudContratacion;
 
     if (idSolicitud && files && files.length > 0) {
       for (const file of files) {
@@ -139,14 +139,14 @@ export const contratacionService = {
           const resUp = await storageService.uploadFile(file);
           if (resUp && resUp.url) {
             await api.post('/Contratacion/media', {
-              IdSolicitud: idSolicitud,
+              IdSolicitud: parseInt(idSolicitud, 10),
               Tipo: resUp.tipo || 'FOTO',
               Url: resUp.url,
               Descripcion: file.name
             });
           }
         } catch (e) {
-          console.warn('[contratacionService] Error al adjuntar media a la solicitud:', e);
+          console.error('[contratacionService] Error al adjuntar media a la solicitud:', e);
         }
       }
     }

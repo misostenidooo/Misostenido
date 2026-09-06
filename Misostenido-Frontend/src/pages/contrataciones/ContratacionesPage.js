@@ -28,8 +28,7 @@ export const ContratacionesPage = {
     const user = authService.getCurrentUser() || {};
     const avatarSrc = user.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0d6855&color=fff`;
 
-    const savedHeroBg = localStorage.getItem('contrataciones_hero_bg') || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1600&q=80';
-    const heroBgStyle = `background: linear-gradient(135deg, rgba(13, 104, 85, 0.88) 0%, rgba(8, 76, 62, 0.92) 100%), url('${savedHeroBg}') center/cover no-repeat;`;
+    const heroBgStyle = `background: linear-gradient(135deg, rgba(13, 104, 85, 0.94) 0%, rgba(8, 76, 62, 0.96) 100%), url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;`;
 
     const container = document.createElement('div');
     container.className = 'contrataciones-page animate-fade';
@@ -39,12 +38,6 @@ export const ContratacionesPage = {
     container.innerHTML = `
       <!-- ================= HERO HEADER ================= -->
       <section class="contrataciones-hero" id="contrataciones-hero" style="${heroBgStyle}">
-        <button class="btn-change-hero-bg" id="btn-change-hero-bg" title="Cambiar foto de fondo del encabezado">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>📷 Cambiar Foto de Fondo</span>
-        </button>
-        <input type="file" id="hero-bg-file-input" accept="image/*" style="display:none" />
-
         <div class="hero-content">
           <h1 class="hero-title">Encuentra el Talento Musical Perfecto para tu Evento</h1>
           <p class="hero-subtitle">Conecta con los mejores músicos, bandas, mariachis y DJs de Nicaragua y Latinoamérica.</p>
@@ -331,14 +324,37 @@ export const ContratacionesPage = {
           </div>
         </div>
       </div>
+
+      <!-- ==============================================================
+           MODAL VER DETALLES (OFERTA O SOLICITUD)
+           ============================================================== -->
+      <div class="modal-overlay" id="modal-detalle" style="display:none">
+        <div class="modal-detalle-card" id="modal-detalle-card">
+          <!-- El contenido se inyecta dinámicamente via renderDetalleModal() -->
+          <div class="detalle-loading">
+            <div class="spinner"></div>
+            <span>Cargando información...</span>
+          </div>
+        </div>
+      </div>
     `;
 
     setTimeout(() => {
+      this._moveModalsToBody(container);
       this.attachEvents(container);
       this.loadContent(container);
     }, 0);
 
     return container;
+  },
+
+  // ─────────────────────────────────────────────
+  // MOVER MODALES AL BODY (evita duplicados y z-index corruption por transforms)
+  // ─────────────────────────────────────────────
+  _moveModalsToBody(container) {
+    document.querySelectorAll('body > #modal-create-gig, body > #modal-hire-request, body > #modal-detalle').forEach(old => old.remove());
+    const modals = container.querySelectorAll('.modal-overlay');
+    modals.forEach(m => document.body.appendChild(m));
   },
 
   formatMediaUrl(url) {
@@ -398,10 +414,49 @@ export const ContratacionesPage = {
       return;
     }
 
-    if (titleLbl) titleLbl.textContent = `${this._ofertas.length} Ofertas de Servicios Musicales`;
-    if (grid) grid.innerHTML = this._ofertas.map(o => this.renderOfertaCard(o)).join('');
+    // Cargar media en paralelo para ofertas que tengan archivos subidos
+    this._ofertas = await Promise.all(
+      this._ofertas.map(async (o) => {
+        const id = o.idOfertaServicio || o.id;
+        const hasMedia = (o.totalMedia || o.TotalMedia || 0) > 0;
+        if (hasMedia) {
+          try {
+            const detalle = await contratacionService.getOfertaDetalle(id);
+            if (detalle && detalle.media) {
+              return { ...o, media: detalle.media };
+            }
+          } catch (e) {
+            console.warn('Error cargando media para oferta', id, e);
+          }
+        }
+        return o;
+      })
+    );
 
-    this.bindCardEvents(container);
+    if (titleLbl) titleLbl.textContent = `${this._ofertas.length} Ofertas de Servicios Musicales`;
+    if (grid) {
+      grid.innerHTML = this._ofertas.map(o => this.renderOfertaCard(o)).join('');
+
+      // Auto-abrir modal de detalle si viene el id por parámetro (ej: #/contrataciones?id=5)
+      const hash = window.location.hash || '';
+      const queryParams = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
+      const targetId = queryParams.get('id') || queryParams.get('oferta') || queryParams.get('highlight');
+      if (targetId) {
+        setTimeout(() => {
+          const modalDetalle = document.querySelector('#modal-detalle');
+          if (modalDetalle) {
+            modalDetalle.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            this.openDetalle(targetId, 'oferta', container, authService.isAuthenticated());
+          }
+          const cardEl = grid.querySelector(`[data-id="${targetId}"]`);
+          if (cardEl) {
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            cardEl.style.boxShadow = '0 0 0 4px #0d6855, 0 12px 28px rgba(13, 104, 85, 0.35)';
+          }
+        }, 250);
+      }
+    }
   },
 
   // ─────────────────────────────────────────────
@@ -442,10 +497,145 @@ export const ContratacionesPage = {
       return;
     }
 
+    // Cargar media en paralelo para solicitudes que tengan archivos subidos
+    this._solicitudes = await Promise.all(
+      this._solicitudes.map(async (s) => {
+        const id = s.idSolicitudContratacion || s.id;
+        const hasMedia = (s.totalMedia || s.TotalMedia || (s.media && s.media.length) || 0) > 0;
+        if (hasMedia) {
+          try {
+            const detalle = await contratacionService.getSolicitudDetalle(id);
+            if (detalle && detalle.media) {
+              return { ...s, media: detalle.media };
+            }
+          } catch (e) {
+            console.warn('Error cargando media para solicitud', id, e);
+          }
+        }
+        return s;
+      })
+    );
+
     if (titleLbl) titleLbl.textContent = `${this._solicitudes.length} Solicitudes de Eventos encontradas`;
     if (grid) grid.innerHTML = this._solicitudes.map(s => this.renderSolicitudCard(s)).join('');
+  },
 
-    this.bindCardEvents(container);
+  // ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // HELPERS DE GENERO / ÁREA MUSICAL → CLASE CSS, INSTRUMENTO Y EMOJI
+  // ─────────────────────────────────────────────
+  _getAreaInfo(genero = '', artistaTipo = '') {
+    const g = (genero || '').toLowerCase();
+    const t = (artistaTipo || '').toLowerCase();
+    const combined = `${g} ${t}`;
+
+    if (combined.includes('rock') || combined.includes('metal') || combined.includes('punk') || combined.includes('guitarra el')) {
+      return {
+        area: 'Guitarra Eléctrica & Rock',
+        instrumento: 'Guitarra Eléctrica / Bajo / Batería',
+        emoji: '🎸',
+        genreClass: 'genre-rock',
+        iconText: 'Rock & Alternativo'
+      };
+    }
+    if (combined.includes('jazz') || combined.includes('bossa') || combined.includes('sax') || combined.includes('trompet') || combined.includes('viento')) {
+      return {
+        area: 'Saxofón & Jazz / Vientos',
+        instrumento: 'Saxofón / Trompeta / Ensamble Jazz',
+        emoji: '🎷',
+        genreClass: 'genre-jazz',
+        iconText: 'Jazz & Vientos'
+      };
+    }
+    if (combined.includes('cl') && (combined.includes('sica') || combined.includes('viol') || combined.includes('orquest') || combined.includes('piano') || combined.includes('chelo'))) {
+      return {
+        area: 'Violín, Piano & Música Clásica',
+        instrumento: 'Violín / Violonchelo / Piano de Cola',
+        emoji: '🎻',
+        genreClass: 'genre-clasica',
+        iconText: 'Clásica & Cuerdas'
+      };
+    }
+    if (combined.includes('cumbia') || combined.includes('tropical') || combined.includes('acorde')) {
+      return {
+        area: 'Acordeón & Cumbia Tropical',
+        instrumento: 'Acordeón / Percusión Tropical',
+        emoji: '🪗',
+        genreClass: 'genre-cumbia',
+        iconText: 'Cumbia & Tropical'
+      };
+    }
+    if (combined.includes('salsa') || combined.includes('merengue') || combined.includes('bachata') || combined.includes('timbal') || combined.includes('conga') || combined.includes('latina')) {
+      return {
+        area: 'Percusión Latina & Salsa',
+        instrumento: 'Congas / Timbales / Piano Latino',
+        emoji: '💃',
+        genreClass: 'genre-salsa',
+        iconText: 'Salsa & Son Latino'
+      };
+    }
+    if (combined.includes('electr') || combined.includes('dj') || combined.includes('sint') || combined.includes('beat') || combined.includes('urbano') || combined.includes('trap') || combined.includes('regge')) {
+      return {
+        area: 'DJ, Sintetizadores & Beats',
+        instrumento: 'Controlador DJ / Sintetizador / Beats',
+        emoji: '🎛️',
+        genreClass: 'genre-electronica',
+        iconText: 'Electrónica & DJ'
+      };
+    }
+    if (combined.includes('mariachi') || combined.includes('ranch') || combined.includes('guitarron') || combined.includes('norte')) {
+      return {
+        area: 'Trompeta, Guitarrón & Mariachi',
+        instrumento: 'Trompeta / Vihuela / Guitarrón',
+        emoji: '🪕',
+        genreClass: 'genre-mariachi',
+        iconText: 'Mariachi & Regional'
+      };
+    }
+    if (combined.includes('piano') || combined.includes('teclado') || combined.includes('organo')) {
+      return {
+        area: 'Piano & Teclados',
+        instrumento: 'Piano / Teclado Digital / Sintetizador',
+        emoji: '🎹',
+        genreClass: 'genre-clasica',
+        iconText: 'Teclados & Piano'
+      };
+    }
+    if (combined.includes('bater') || combined.includes('percusi')) {
+      return {
+        area: 'Batería & Percusión',
+        instrumento: 'Set de Batería Acústica / Percusión',
+        emoji: '🥁',
+        genreClass: 'genre-rock',
+        iconText: 'Batería & Ritmo'
+      };
+    }
+    if (combined.includes('ac') && combined.includes('stico') || combined.includes('voz') || combined.includes('cant') || combined.includes('trova') || combined.includes('balada') || combined.includes('pop')) {
+      return {
+        area: 'Voz & Guitarra Acústica',
+        instrumento: 'Micrófono Vocal / Guitarra Acústica',
+        emoji: '🎤',
+        genreClass: 'genre-acustico',
+        iconText: 'Acústico & Voz'
+      };
+    }
+
+    // Genérico por defecto
+    return {
+      area: genero ? `${genero} • Área Musical` : 'Música en Vivo & Ejecución',
+      instrumento: artistaTipo || 'Instrumentista / Ensamble Musical',
+      emoji: '🎵',
+      genreClass: 'genre-default',
+      iconText: genero ? genero.toUpperCase() : 'MÚSICA EN VIVO'
+    };
+  },
+
+  _getGenreClass(genero) {
+    return this._getAreaInfo(genero).genreClass;
+  },
+
+  _getGenreEmoji(genero) {
+    return this._getAreaInfo(genero).emoji;
   },
 
   // ─────────────────────────────────────────────
@@ -453,74 +643,147 @@ export const ContratacionesPage = {
   // ─────────────────────────────────────────────
   renderOfertaCard(o) {
     const id = o.idOfertaServicio || o.id;
-    const genero = (o.generoMusical || 'JAZZ & BOSSA').toUpperCase();
+    const generoRaw = o.generoMusical || '';
     const verificado = o.artistaVerificado !== false;
-    const avatar = o.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(o.artistaNombre || 'Artista')}&background=0d6855&color=fff`;
+    const avatar = o.fotoPerfilUrl
+      ? this.formatMediaUrl(o.fotoPerfilUrl)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(o.artistaNombre || 'Artista')}&background=0d6855&color=fff`;
     const precio = o.tarifaAproximada ? `$${o.tarifaAproximada} / hora` : 'A convenir';
+    
+    const areaInfo = this._getAreaInfo(generoRaw, o.artistaTipo);
+    const media = o.media || [];
+    const fotos = media.filter(m => m.tipo === 'FOTO' || (m.url || '').match(/\.(jpg|jpeg|png|gif|webp)$/i));
+    const audios = media.filter(m => m.tipo === 'AUDIO' || (m.url || '').match(/\.(mp3|wav|ogg|m4a|flac)$/i));
 
-    // Imagen o Demo Media
-    const mediaItem = (o.media && o.media.length > 0) ? o.media[0] : null;
-    let coverSrc = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
-    if (mediaItem && mediaItem.tipo === 'FOTO') {
-      coverSrc = this.formatMediaUrl(mediaItem.url);
+    // Cover: foto real si la subió, o carátula temática de área musical si no
+    let coverHtml;
+    if (fotos.length > 0) {
+      coverHtml = `
+        <img src="${this.formatMediaUrl(fotos[0].url)}" alt="${o.titulo}" class="gig-cover-real-img"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="gig-cover-placeholder" style="display:none">
+          <span class="placeholder-icon">${areaInfo.emoji}</span>
+          <span class="placeholder-genre">${areaInfo.iconText}</span>
+          <div class="placeholder-instrument-area">
+            <span class="pia-tag">Área: ${areaInfo.area}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      coverHtml = `
+        <div class="gig-cover-placeholder">
+          <span class="placeholder-icon">${areaInfo.emoji}</span>
+          <span class="placeholder-genre">${areaInfo.iconText}</span>
+          <div class="placeholder-instrument-area">
+            <span class="pia-tag">Área: ${areaInfo.area}</span>
+            <span class="pia-no-photo">📷 Sin foto adjunta</span>
+          </div>
+        </div>
+      `;
     }
 
-    const audioMedia = (o.media || []).find(m => m.tipo === 'AUDIO' || (m.url || '').match(/\.(mp3|wav|ogg|m4a)$/i));
-    const audioUrl = audioMedia ? this.formatMediaUrl(audioMedia.url) : 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+    // Audio: reproductor interactivo en la tarjeta si subió audio
+    let audioHtml;
+    if (audios.length > 0) {
+      const audUrl = this.formatMediaUrl(audios[0].url);
+      const audName = audios[0].descripcion || 'Muestra de audio';
+      audioHtml = `
+        <div class="gig-audio-sample-card gig-audio-card-player" title="${audName}">
+          <button class="btn-card-audio-play" type="button" title="Reproducir / Pausar muestra de audio">
+            <svg class="cap-play-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="cap-pause-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <div class="gig-waveform-bars">
+            <span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span>
+            <span class="bar b4"></span><span class="bar b5"></span><span class="bar b6"></span>
+            <span class="bar b7"></span><span class="bar b8"></span>
+          </div>
+          <span class="gig-card-audio-time">0:00</span>
+          <audio src="${audUrl}" class="card-audio-el" preload="none"></audio>
+        </div>
+      `;
+    } else {
+      audioHtml = `<div class="gig-audio-no-demo">🎤 Sin muestra de audio cargada</div>`;
+    }
 
     return `
       <div class="gig-card" data-id="${id}" data-type="oferta">
-        <div class="gig-cover-wrap">
-          <img src="${coverSrc}" alt="${o.titulo}" class="gig-cover-img" loading="lazy" />
-          <span class="gig-genre-badge">${genero}</span>
-          ${verificado ? `<span class="gig-verified-badge" title="Artista Verificado">✓</span>` : ''}
+        <div class="gig-cover-wrap ${fotos.length === 0 ? areaInfo.genreClass : ''}">
+          ${coverHtml}
+          <span class="gig-genre-badge">${areaInfo.iconText}</span>
+          ${verificado ? `<span class="gig-verified-badge" title="Artista Verificado">✓ Verificado</span>` : ''}
         </div>
 
         <div class="gig-card-body">
           <div class="gig-artist-row">
-            <img src="${avatar}" alt="${o.artistaNombre || 'Artista'}" class="gig-artist-avatar" />
+            <img src="${avatar}" alt="${o.artistaNombre || 'Artista'}" class="gig-artist-avatar"
+              onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(o.artistaNombre || 'A')}&background=0d6855&color=fff'" />
             <div class="gig-artist-meta">
               <span class="gig-artist-name">${o.artistaNombre || 'Artista Musical'}</span>
-              <span class="gig-rating">⭐ 4.9 <small>(38 reseña)</small></span>
+              <span style="font-size:0.74rem;color:#64748b">${o.artistaTipo || areaInfo.instrumento}</span>
             </div>
           </div>
 
           <h3 class="gig-card-title">${o.titulo}</h3>
-          
+
           <div class="gig-location-price">
-            <span class="gig-location">📍 ${o.ubicacion || 'Managua, NIC'}</span>
+            <span class="gig-location">📍 ${o.ubicacion || 'Nicaragua'}</span>
             <span class="gig-price">${precio}</span>
           </div>
 
-          <!-- DEMO DE REPRODUCCIÓN AUDIO / ONDAS DE SONIDO 🎵 -->
-          <div class="gig-audio-sample-card">
-            <button class="btn-gig-play-demo" type="button" aria-label="Reproducir demo audio">
-              <svg class="demo-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              <svg class="demo-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
-            <div class="gig-waveform-bars">
-              <span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span><span class="bar b4"></span><span class="bar b5"></span>
-              <span class="bar b6"></span><span class="bar b7"></span><span class="bar b8"></span><span class="bar b9"></span><span class="bar b10"></span>
-            </div>
-            <small class="gig-demo-time">0:30</small>
-            <audio src="${audioUrl}" class="gig-audio-element" preload="metadata"></audio>
-          </div>
+          ${audioHtml}
 
           <div class="gig-actions">
-            <button class="btn-gig-icon btn-like-gig" title="Guardar en Favoritos">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            </button>
-            <button class="btn-gig-icon btn-chat-gig" title="Consultar">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <button class="btn-ver-detalles btn-ver-detalle-oferta" data-id="${id}" data-type="oferta">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver Detalles
             </button>
             <button class="btn-solicitar-contratacion" data-id="${id}" data-title="${encodeURIComponent(o.titulo)}">
-              Solicitar Contratación
+              Contratar
             </button>
           </div>
 
         </div>
       </div>
     `;
+  },
+
+  // ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // PREVIEWS DE ARCHIVOS SELECCIONADOS EN MODAL CREAR
+  // ─────────────────────────────────────────────
+  renderGigPreviews(container) {
+    const previewsList = container.querySelector('#gig-previews-list');
+    if (!previewsList) return;
+
+    if (!this._selectedFiles || this._selectedFiles.length === 0) {
+      previewsList.style.display = 'none';
+      previewsList.innerHTML = '';
+      return;
+    }
+
+    previewsList.style.display = 'flex';
+    previewsList.innerHTML = this._selectedFiles.map((f, idx) => {
+      let icon = '📷';
+      if (f.type.startsWith('audio/') || f.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i)) icon = '🎵';
+      else if (f.type.startsWith('video/') || f.name.match(/\.(mp4|webm|mov|mkv|avi)$/i)) icon = '🎬';
+
+      const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
+      return `
+        <div class="gig-preview-chip">
+          <span>${icon} ${f.name} (${sizeMb} MB)</span>
+          <button type="button" class="chip-remove" data-idx="${idx}" title="Eliminar archivo">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    previewsList.querySelectorAll('.chip-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        this._selectedFiles.splice(idx, 1);
+        this.renderGigPreviews(container);
+      });
+    });
   },
 
   // ─────────────────────────────────────────────
@@ -528,36 +791,54 @@ export const ContratacionesPage = {
   // ─────────────────────────────────────────────
   renderSolicitudCard(s) {
     const id = s.idSolicitudContratacion || s.id;
-    const avatar = s.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.contratanteNombre || 'Organizador')}&background=1a9974&color=fff`;
+    const avatar = s.fotoPerfilUrl
+      ? this.formatMediaUrl(s.fotoPerfilUrl)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.contratanteNombre || 'Organizador')}&background=1a9974&color=fff`;
     const presupuesto = s.presupuesto ? `$${s.presupuesto}` : 'A convenir';
+    const media = s.media || [];
+    const fotos = media.filter(m => m.tipo === 'FOTO' || (m.url || '').match(/\.(jpg|jpeg|png|gif|webp)$/i));
+    const audios = media.filter(m => m.tipo === 'AUDIO' || (m.url || '').match(/\.(mp3|wav|ogg|m4a|flac)$/i));
+    const videos = media.filter(m => m.tipo === 'VIDEO' || (m.url || '').match(/\.(mp4|webm|mov)$/i));
+
+    const mediaCount = (s.totalMedia || s.TotalMedia || media.length || 0);
+    const mediaIndicator = mediaCount > 0
+      ? `<div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;color:#0d6855;font-weight:600;margin-bottom:12px;">📎 ${mediaCount} archivo(s) adjunto(s) ${videos.length > 0 ? '🎬' : ''} ${audios.length > 0 ? '🎵' : ''}</div>`
+      : '';
 
     return `
       <div class="gig-card gig-solicitud-card" data-id="${id}" data-type="solicitud">
         <div class="gig-card-header-solicitud">
           <span class="gig-solicitud-badge">💼 SOLICITUD DE EVENTO</span>
-          <span class="gig-solicitud-date">📅 ${s.fechaEvento ? new Date(s.fechaEvento).toLocaleDateString() : 'Próximamente'}</span>
+          <span class="gig-solicitud-date">📅 ${s.fechaEvento ? new Date(s.fechaEvento).toLocaleDateString('es-NI') : 'Próximamente'}</span>
         </div>
 
         <div class="gig-card-body">
           <div class="gig-artist-row">
-            <img src="${avatar}" alt="${s.contratanteNombre}" class="gig-artist-avatar" />
+            <img src="${avatar}" alt="${s.contratanteNombre || 'Organizador'}" class="gig-artist-avatar"
+              onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(s.contratanteNombre || 'O')}&background=1a9974&color=fff'" />
             <div class="gig-artist-meta">
               <span class="gig-artist-name">${s.contratanteNombre || 'Contratante'}</span>
-              <small class="gig-organizer-tag">Organizador de Eventos</small>
+              <small class="gig-organizer-tag">${s.contratanteTipo || 'Organizador de Eventos'}</small>
             </div>
           </div>
 
           <h3 class="gig-card-title">${s.titulo}</h3>
-          <p class="gig-card-desc">${s.descripcion || 'Se busca banda o músico para amenizar evento corporativo o fiesta privada.'}</p>
+          <p class="gig-card-desc">${s.descripcion || 'Se busca músico o banda para evento.'}</p>
+
+          ${mediaIndicator}
 
           <div class="gig-location-price">
-            <span class="gig-location">📍 ${s.ubicacion || 'Managua, NIC'}</span>
+            <span class="gig-location">📍 ${s.ubicacion || 'Nicaragua'}</span>
             <span class="gig-price">Presupuesto: <strong>${presupuesto}</strong></span>
           </div>
 
           <div class="gig-actions mt-auto">
-            <button class="btn-solicitar-contratacion w-full" data-id="${id}" data-solicitud="true" data-title="${encodeURIComponent(s.titulo)}">
-              Postularme como Músico
+            <button class="btn-ver-detalles btn-ver-detalle-oferta" data-id="${id}" data-type="solicitud">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver Detalles
+            </button>
+            <button class="btn-solicitar-contratacion" data-id="${id}" data-solicitud="true" data-title="${encodeURIComponent(s.titulo)}">
+              Postularme
             </button>
           </div>
         </div>
@@ -565,44 +846,68 @@ export const ContratacionesPage = {
     `;
   },
 
-
-
   // ─────────────────────────────────────────────
   // EVENTOS E INTERACTIVIDAD DE PÁGINA
   // ─────────────────────────────────────────────
   attachEvents(container) {
     const isAuth = authService.isAuthenticated();
 
-    // Cambiar Foto de Fondo del Hero
-    const btnChangeHeroBg = container.querySelector('#btn-change-hero-bg');
-    const inputHeroBgFile = container.querySelector('#hero-bg-file-input');
-    const heroSection = container.querySelector('#contrataciones-hero');
+    // Reproductor de audio interactivo en las tarjetas de oferta
+    container.addEventListener('click', (e) => {
+      const btnPlay = e.target.closest('.btn-card-audio-play');
+      if (!btnPlay) return;
 
-    btnChangeHeroBg?.addEventListener('click', () => {
-      inputHeroBgFile.click();
-    });
+      const playerWrap = btnPlay.closest('.gig-audio-card-player');
+      const audioEl = playerWrap?.querySelector('.card-audio-el');
+      const playIcon = btnPlay.querySelector('.cap-play-icon');
+      const pauseIcon = btnPlay.querySelector('.cap-pause-icon');
+      const timeLbl = playerWrap?.querySelector('.gig-card-audio-time');
 
-    inputHeroBgFile?.addEventListener('change', async (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        const file = e.target.files[0];
-        const btnText = btnChangeHeroBg.querySelector('span');
-        if (btnText) btnText.textContent = 'Subiendo a Supabase...';
-        btnChangeHeroBg.disabled = true;
+      if (!audioEl) return;
 
-        try {
-          const res = await storageService.uploadFile(file);
-          if (res && res.url) {
-            localStorage.setItem('contrataciones_hero_bg', res.url);
-            heroSection.style.background = `linear-gradient(135deg, rgba(13, 104, 85, 0.88) 0%, rgba(8, 76, 62, 0.92) 100%), url('${res.url}') center/cover no-repeat`;
-            if (btnText) btnText.textContent = '📷 Cambiar Foto de Fondo';
+      if (audioEl.paused) {
+        // Pausar cualquier otro audio sonando
+        container.querySelectorAll('audio').forEach(a => {
+          if (a !== audioEl && !a.paused) {
+            a.pause();
+            const parent = a.closest('.gig-audio-card-player') || a.closest('.detalle-audio-section');
+            if (parent) {
+              parent.classList.remove('playing');
+              const pi = parent.querySelector('.cap-play-icon') || parent.querySelector('.dpa-icon-play');
+              const pau = parent.querySelector('.cap-pause-icon') || parent.querySelector('.dpa-icon-pause');
+              if (pi) pi.style.display = 'inline';
+              if (pau) pau.style.display = 'none';
+            }
           }
-        } catch (err) {
-          alert('Error al actualizar imagen de fondo: ' + (err.message || 'Intente nuevamente'));
-          if (btnText) btnText.textContent = '📷 Cambiar Foto de Fondo';
-        } finally {
-          btnChangeHeroBg.disabled = false;
-        }
+        });
+
+        audioEl.play().then(() => {
+          playerWrap.classList.add('playing');
+          if (playIcon) playIcon.style.display = 'none';
+          if (pauseIcon) pauseIcon.style.display = 'inline';
+        }).catch(err => {
+          console.warn('Error al reproducir audio de la tarjeta:', err);
+        });
+      } else {
+        audioEl.pause();
+        playerWrap.classList.remove('playing');
+        if (playIcon) playIcon.style.display = 'inline';
+        if (pauseIcon) pauseIcon.style.display = 'none';
       }
+
+      audioEl.ontimeupdate = () => {
+        const cur = audioEl.currentTime;
+        const mins = Math.floor(cur / 60);
+        const secs = Math.floor(cur % 60);
+        if (timeLbl) timeLbl.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      };
+
+      audioEl.onended = () => {
+        playerWrap.classList.remove('playing');
+        if (playIcon) playIcon.style.display = 'inline';
+        if (pauseIcon) pauseIcon.style.display = 'none';
+        if (timeLbl) timeLbl.textContent = '0:00';
+      };
     });
 
     // Swticher de Tabs (Ofertas vs Solicitudes)
@@ -654,11 +959,14 @@ export const ContratacionesPage = {
     });
 
     // MODAL CREAR OFERTA/SOLICITUD
-    const modalCreate = container.querySelector('#modal-create-gig');
+    const modalCreate = document.querySelector('body > #modal-create-gig') || container.querySelector('#modal-create-gig');
+    const modalHire = document.querySelector('body > #modal-hire-request') || container.querySelector('#modal-hire-request');
+    const modalDetalle = document.querySelector('body > #modal-detalle') || container.querySelector('#modal-detalle');
+
     const btnOpenCreate = container.querySelector('#btn-open-create-modal');
-    const btnCloseCreate = container.querySelector('#btn-close-create-modal');
-    const btnCancelCreate = container.querySelector('#btn-cancel-create');
-    const formCreate = container.querySelector('#form-create-gig');
+    const btnCloseCreate = modalCreate?.querySelector('#btn-close-create-modal');
+    const btnCancelCreate = modalCreate?.querySelector('#btn-cancel-create');
+    const formCreate = modalCreate?.querySelector('#form-create-gig');
 
     let createMode = 'oferta'; // 'oferta' | 'solicitud'
 
@@ -667,56 +975,90 @@ export const ContratacionesPage = {
         AuthModal.show('¡Publica en Contrataciones!', 'Debes iniciar sesión para publicar ofertas de servicio o solicitudes.');
         return;
       }
-      modalCreate.style.display = 'flex';
+      if (modalCreate) {
+        modalCreate.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
     };
 
     const closeCreateModal = () => {
-      modalCreate.style.display = 'none';
+      if (modalCreate) {
+        modalCreate.style.display = 'none';
+        document.body.style.overflow = '';
+      }
       this._selectedFiles = [];
-      formCreate.reset();
-      container.querySelector('#gig-previews-list').style.display = 'none';
-      container.querySelector('#gig-previews-list').innerHTML = '';
+      if (formCreate) formCreate.reset();
+      const list = modalCreate?.querySelector('#gig-previews-list');
+      if (list) {
+        list.style.display = 'none';
+        list.innerHTML = '';
+      }
     };
 
     btnOpenCreate?.addEventListener('click', openCreateModal);
     btnCloseCreate?.addEventListener('click', closeCreateModal);
     btnCancelCreate?.addEventListener('click', closeCreateModal);
 
+    modalCreate?.addEventListener('click', (e) => {
+      if (e.target === modalCreate) closeCreateModal();
+    });
+
     // Switcher dentro del modal (Oferta vs Solicitud)
-    const tabTypeOferta = container.querySelector('#tab-type-oferta');
-    const tabTypeSolicitud = container.querySelector('#tab-type-solicitud');
-    const lblPrice = container.querySelector('#lbl-price');
-    const groupDate = container.querySelector('#group-event-date');
+    const tabTypeOferta = modalCreate?.querySelector('#tab-type-oferta');
+    const tabTypeSolicitud = modalCreate?.querySelector('#tab-type-solicitud');
+    const lblPrice = modalCreate?.querySelector('#lbl-price');
+    const groupDate = modalCreate?.querySelector('#group-event-date');
 
     tabTypeOferta?.addEventListener('click', () => {
       createMode = 'oferta';
       tabTypeOferta.classList.add('active');
-      tabTypeSolicitud.classList.remove('active');
-      lblPrice.textContent = 'Tarifa por Hora / Presupuesto (USD) *';
-      groupDate.style.display = 'none';
+      tabTypeSolicitud?.classList.remove('active');
+      if (lblPrice) lblPrice.textContent = 'Tarifa por Hora / Presupuesto (USD) *';
+      if (groupDate) groupDate.style.display = 'none';
     });
 
     tabTypeSolicitud?.addEventListener('click', () => {
       createMode = 'solicitud';
       tabTypeSolicitud.classList.add('active');
-      tabTypeOferta.classList.remove('active');
-      lblPrice.textContent = 'Presupuesto Total Estimado (USD) *';
-      groupDate.style.display = 'block';
+      tabTypeOferta?.classList.remove('active');
+      if (lblPrice) lblPrice.textContent = 'Presupuesto Total Estimado (USD) *';
+      if (groupDate) groupDate.style.display = 'block';
     });
 
     // Dropzone Supabase en el modal
-    const dropzone = container.querySelector('#gig-dropzone');
-    const fileInput = container.querySelector('#gig-file-input');
-    const previewsList = container.querySelector('#gig-previews-list');
+    const dropzone = modalCreate?.querySelector('#gig-dropzone');
+    const fileInput = modalCreate?.querySelector('#gig-file-input');
 
-    dropzone?.addEventListener('click', () => fileInput.click());
+    dropzone?.addEventListener('click', (e) => {
+      if (e.target !== fileInput) fileInput?.click();
+    });
+
+    dropzone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+
+    dropzone?.addEventListener('dragleave', () => {
+      dropzone.classList.remove('drag-over');
+    });
+
+    dropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          this._selectedFiles.push(e.dataTransfer.files[i]);
+        }
+        this.renderGigPreviews(modalCreate);
+      }
+    });
 
     fileInput?.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {
         for (let i = 0; i < e.target.files.length; i++) {
           this._selectedFiles.push(e.target.files[i]);
         }
-        this.renderGigPreviews(container);
+        this.renderGigPreviews(modalCreate);
       }
       fileInput.value = '';
     });
@@ -725,15 +1067,17 @@ export const ContratacionesPage = {
     formCreate?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = formCreate.querySelector('#btn-submit-create');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Subiendo a Supabase y guardando...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Subiendo multimedia y guardando...';
+      }
 
-      const titulo = container.querySelector('#gig-title').value;
-      const genero = container.querySelector('#gig-genre').value;
-      const precio = container.querySelector('#gig-price').value;
-      const ubicacion = container.querySelector('#gig-location').value;
-      const descripcion = container.querySelector('#gig-description').value;
-      const fechaEvento = container.querySelector('#gig-event-date').value;
+      const titulo = modalCreate.querySelector('#gig-title').value;
+      const genero = modalCreate.querySelector('#gig-genre').value;
+      const precio = modalCreate.querySelector('#gig-price').value;
+      const ubicacion = modalCreate.querySelector('#gig-location').value;
+      const descripcion = modalCreate.querySelector('#gig-description').value;
+      const fechaEvento = modalCreate.querySelector('#gig-event-date').value;
 
       try {
         if (createMode === 'oferta') {
@@ -765,24 +1109,32 @@ export const ContratacionesPage = {
       } catch (err) {
         alert('Error al publicar: ' + (err.message || 'Verifica la conexión'));
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Publicar en Contrataciones';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Publicar en Contrataciones';
+        }
       }
     });
 
     // MODAL DE ENVIAR SOLICITUD DE CONTRATACIÓN DIRECTA
-    const modalHire = container.querySelector('#modal-hire-request');
-    const btnCloseHire = container.querySelector('#btn-close-hire-modal');
-    const btnCancelHire = container.querySelector('#btn-cancel-hire');
-    const formHire = container.querySelector('#form-hire-request');
+    const btnCloseHire = modalHire?.querySelector('#btn-close-hire-modal');
+    const btnCancelHire = modalHire?.querySelector('#btn-cancel-hire');
+    const formHire = modalHire?.querySelector('#form-hire-request');
 
     const closeHireModal = () => {
-      modalHire.style.display = 'none';
-      formHire.reset();
+      if (modalHire) {
+        modalHire.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+      if (formHire) formHire.reset();
     };
 
     btnCloseHire?.addEventListener('click', closeHireModal);
     btnCancelHire?.addEventListener('click', closeHireModal);
+
+    modalHire?.addEventListener('click', (e) => {
+      if (e.target === modalHire) closeHireModal();
+    });
 
     let targetGigId = null;
     let isSolicitudTarget = false;
@@ -790,29 +1142,42 @@ export const ContratacionesPage = {
     formHire?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = formHire.querySelector('#btn-submit-hire');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+      }
 
-      const mensaje = container.querySelector('#hire-message').value;
+      const mensaje = modalHire.querySelector('#hire-message').value;
+
+      // Puede venir de card directa o del modal de detalles
+      const resolvedId = targetGigId || modalHire.dataset.targetId;
+      const resolvedIsSolicitud = isSolicitudTarget || (modalHire.dataset.esSolicitud === 'true');
 
       try {
         await contratacionService.solicitarContratacion({
-          idOferta: !isSolicitudTarget ? targetGigId : null,
-          idSolicitud: isSolicitudTarget ? targetGigId : null,
+          idOferta: !resolvedIsSolicitud ? resolvedId : null,
+          idSolicitud: resolvedIsSolicitud ? resolvedId : null,
           mensaje
         });
 
         closeHireModal();
+        // Limpiar dataset tras envío exitoso
+        modalHire.dataset.targetId = '';
+        modalHire.dataset.esSolicitud = '';
+        targetGigId = null;
+        isSolicitudTarget = false;
         alert('¡Tu solicitud ha sido enviada exitosamente al músico/contratante!');
       } catch (err) {
         alert('Error al enviar propuesta: ' + (err.message || 'Verifica tu conexión'));
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar Solicitud Directa';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar Solicitud Directa';
+        }
       }
     });
 
-    // Exponer apertura de modal hire
+    // Abrir modal de contratación
     container.addEventListener('click', (e) => {
       const btn = e.target.closest('.btn-solicitar-contratacion');
       if (!btn) return;
@@ -826,41 +1191,427 @@ export const ContratacionesPage = {
       isSolicitudTarget = btn.dataset.solicitud === 'true';
       const title = decodeURIComponent(btn.dataset.title || 'Servicio Musical');
 
-      const summaryCard = container.querySelector('#hire-summary-card');
-      summaryCard.innerHTML = `
-        <h4>${title}</h4>
-        <p><small>${isSolicitudTarget ? 'Postulación a Solicitud de Evento' : 'Solicitud de Contratación de Músico'}</small></p>
-      `;
+      const summaryCard = modalHire?.querySelector('#hire-summary-card');
+      if (summaryCard) {
+        summaryCard.innerHTML = `
+          <h4>${title}</h4>
+          <p><small>${isSolicitudTarget ? 'Postulación a Solicitud de Evento' : 'Solicitud de Contratación de Músico'}</small></p>
+        `;
+      }
 
-      modalHire.style.display = 'flex';
+      if (modalHire) {
+        modalHire.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    // ─── MODAL VER DETALLES ───
+    container.addEventListener('click', async (e) => {
+      const btnVer = e.target.closest('.btn-ver-detalles, .btn-ver-detalle-oferta');
+      const card = e.target.closest('.gig-card');
+      const isPlayAudio = e.target.closest('.btn-card-audio-play, .gig-audio-sample-card');
+      const isHireBtn = e.target.closest('.btn-solicitar-contratacion');
+
+      if (isPlayAudio || isHireBtn) return;
+
+      const target = btnVer || card;
+      if (!target) return;
+
+      const id = target.dataset.id;
+      const tipo = target.dataset.type || (this._activeTab === 'solicitudes' ? 'solicitud' : 'oferta');
+      if (id) {
+        await this.openDetalle(id, tipo, container, isAuth);
+      }
+    });
+
+    // Cerrar modal detalle al click en el overlay o botón cerrar
+    modalDetalle?.addEventListener('click', (e) => {
+      if (e.target === modalDetalle || e.target.closest('.btn-close-modal, #btn-detalle-cerrar')) {
+        modalDetalle.style.display = 'none';
+        document.body.style.overflow = '';
+        document.querySelectorAll('audio.detalle-audio-element, video.detalle-video-player').forEach(a => a.pause());
+      }
     });
   },
 
-  renderGigPreviews(container) {
-    const list = container.querySelector('#gig-previews-list');
-    if (this._selectedFiles.length === 0) {
-      list.style.display = 'none';
-      list.innerHTML = '';
-      return;
+  // ─────────────────────────────────────────────
+  // ABRIR DETALLE: CARGA DATOS REALES DE LA API
+  // ─────────────────────────────────────────────
+  async openDetalle(id, tipo = 'oferta', container, isAuth = authService.isAuthenticated()) {
+    const modalDetalle = document.querySelector('body > #modal-detalle') || document.querySelector('#modal-detalle');
+    const card = modalDetalle?.querySelector('#modal-detalle-card');
+    if (!modalDetalle || !card) return;
+
+    modalDetalle.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Mostrar spinner
+    card.innerHTML = `
+      <div class="detalle-loading">
+        <div class="spinner"></div>
+        <span>Cargando información...</span>
+      </div>
+    `;
+
+    try {
+      let data;
+      if (tipo === 'solicitud') {
+        data = await contratacionService.getSolicitudDetalle(id);
+      } else {
+        data = await contratacionService.getOfertaDetalle(id);
+      }
+
+      if (!data) {
+        card.innerHTML = `
+          <div class="detalle-error" style="padding: 24px; text-align: center;">
+            ❌ No se pudo cargar la información de la contratación.
+            <div style="margin-top:14px">
+              <button class="btn-detalle-cerrar" id="btn-err-cerrar" style="background:#0d6855;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer">← Cerrar</button>
+            </div>
+          </div>
+        `;
+        card.querySelector('#btn-err-cerrar')?.addEventListener('click', () => {
+          modalDetalle.style.display = 'none';
+          document.body.style.overflow = '';
+        });
+        return;
+      }
+
+      this.renderDetalleModal(data, tipo, card, isAuth);
+    } catch (err) {
+      card.innerHTML = `
+        <div class="detalle-error" style="padding: 24px; text-align: center;">
+          ❌ Error: ${err.message || 'No se pudo conectar con el servidor.'}
+          <div style="margin-top:14px">
+            <button class="btn-detalle-cerrar" id="btn-err-cerrar" style="background:#0d6855;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer">← Cerrar</button>
+          </div>
+        </div>
+      `;
+      card.querySelector('#btn-err-cerrar')?.addEventListener('click', () => {
+        modalDetalle.style.display = 'none';
+        document.body.style.overflow = '';
+      });
+    }
+  },
+
+  // ─────────────────────────────────────────────
+  // RENDERIZAR MODAL DE DETALLES CON DATOS REALES
+  // ─────────────────────────────────────────────
+  renderDetalleModal(data, tipo, card, isAuth) {
+    const media = data.media || [];
+    const fotos = media.filter(m => m.tipo === 'FOTO' || (m.url || '').match(/\.(jpg|jpeg|png|gif|webp)$/i));
+    const videos = media.filter(m => m.tipo === 'VIDEO' || (m.url || '').match(/\.(mp4|webm|mov|mkv|avi)$/i));
+    const audios = media.filter(m => m.tipo === 'AUDIO' || (m.url || '').match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i));
+
+    // ── Artista / autor
+    const esOferta = tipo === 'oferta';
+    const nombre = esOferta ? (data.artistaNombre || 'Artista') : (data.contratanteNombre || 'Contratante');
+    const avatarUrl = data.fotoPerfilUrl
+      ? this.formatMediaUrl(data.fotoPerfilUrl)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=0d6855&color=fff`;
+    const authorTag = esOferta ? (data.artistaTipo || 'Músico') : (data.contratanteTipo || 'Organizador de Eventos');
+    const precio = esOferta
+      ? (data.tarifaAproximada ? `$${data.tarifaAproximada} / hora` : 'A convenir')
+      : (data.presupuesto ? `$${data.presupuesto}` : 'A convenir');
+    const verificado = esOferta && data.artistaVerificado;
+    const generoRaw = data.generoMusical || '';
+    const areaInfo = this._getAreaInfo(generoRaw, authorTag);
+
+    // ── Galería: primera foto o placeholder temático CSS por área musical
+    let galleryHtml;
+    if (fotos.length > 0) {
+      const mainUrl = this.formatMediaUrl(fotos[0].url);
+      galleryHtml = `
+        <img src="${mainUrl}" class="detalle-gallery-main" id="detalle-main-img" alt="${data.titulo}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="detalle-gallery-placeholder" style="display:none">
+          <span class="dg-icon">${areaInfo.emoji}</span>
+          <span class="dg-genre-title">${areaInfo.iconText}</span>
+          <span class="dg-area-badge">Área: ${areaInfo.area}</span>
+          <small class="dg-no-photo-badge">📷 Sin foto disponible</small>
+        </div>
+        ${fotos.length > 1 ? `
+          <div class="detalle-gallery-thumbnails">
+            ${fotos.slice(0, 5).map((f, i) => `
+              <img src="${this.formatMediaUrl(f.url)}" class="detalle-thumb ${i === 0 ? 'active' : ''}"
+                data-src="${this.formatMediaUrl(f.url)}" data-thumb-idx="${i}" alt="Foto ${i+1}" />
+            `).join('')}
+          </div>` : ''}
+      `;
+    } else {
+      galleryHtml = `
+        <div class="detalle-gallery-placeholder">
+          <span class="dg-icon">${areaInfo.emoji}</span>
+          <span class="dg-genre-title">${areaInfo.iconText}</span>
+          <div class="dg-area-box">
+            <span class="dg-area-label">ÁREA MUSICAL / INSTRUMENTO</span>
+            <span class="dg-area-value">${areaInfo.area}</span>
+          </div>
+          <span class="dg-no-photo-badge">📷 Sin foto adjunta</span>
+        </div>
+      `;
     }
 
-    list.style.display = 'flex';
-    list.innerHTML = this._selectedFiles.map((file, idx) => `
-      <div class="gig-preview-chip">
-        <span class="chip-icon">${file.type.startsWith('audio/') ? '🎵' : (file.type.startsWith('video/') ? '🎬' : '📸')}</span>
-        <span class="chip-name">${file.name}</span>
-        <button type="button" class="chip-remove" data-idx="${idx}">✕</button>
-      </div>
-    `).join('');
+    // ── Reproductor de audio REAL
+    let audioHtml = '';
+    if (audios.length > 0) {
+      audioHtml = `
+        <div class="detalle-audio-section" id="detalle-audio-section">
+          <div class="detalle-audio-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+            Muestra de Audio (${audios.length})
+          </div>
+          ${audios.map((aud, idx) => {
+            const audUrl = this.formatMediaUrl(aud.url);
+            const audName = aud.descripcion || aud.url.split('/').pop() || `Audio ${idx + 1}`;
+            return `
+              <div class="detalle-audio-player-row mb-8" data-audio-idx="${idx}">
+                <button class="btn-detalle-play btn-play-audio-track" type="button" title="Reproducir">
+                  <svg class="dpa-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  <svg class="dpa-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <div class="detalle-audio-waveform">
+                  ${Array.from({length: 18}, (_, i) => {
+                    const h = [10,16,12,18,14,10,17,11,15,9,13,18,11,16,12,10,15,8][i];
+                    return `<span class="bar" style="height:${h}px"></span>`;
+                  }).join('')}
+                </div>
+                <span class="detalle-audio-time">0:00</span>
+                <audio src="${audUrl}" class="detalle-audio-element" preload="metadata"></audio>
+              </div>
+              <div class="detalle-audio-name">🎵 ${audName}</div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
 
-    list.querySelectorAll('.chip-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const removeIdx = parseInt(btn.dataset.idx, 10);
-        this._selectedFiles.splice(removeIdx, 1);
-        this.renderGigPreviews(container);
+    // ── Video Demostrativo REAL
+    let videoHtml = '';
+    if (videos.length > 0) {
+      videoHtml = `
+        <div class="detalle-video-section">
+          <div class="detalle-desc-label">🎬 Video Demostrativo (${videos.length})</div>
+          <div class="detalle-videos-list">
+            ${videos.map(v => `
+              <div class="detalle-video-card">
+                <video src="${this.formatMediaUrl(v.url)}" controls preload="metadata" class="detalle-video-player" playsinline></video>
+                ${v.descripcion ? `<div class="detalle-video-caption">📹 ${v.descripcion}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Grid de fotos adicionales (aparte de la principal)
+    let extraMediaHtml = '';
+    const extraFotos = fotos.slice(1);
+    if (extraFotos.length > 0) {
+      extraMediaHtml = `
+        <div>
+          <div class="detalle-desc-label">Galería de Fotos</div>
+          <div class="detalle-media-grid">
+            ${extraFotos.map(f => `
+              <img src="${this.formatMediaUrl(f.url)}" class="detalle-media-thumb" alt="Foto"
+                onclick="document.getElementById('detalle-main-img').src='${this.formatMediaUrl(f.url)}'" />
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Chips de metadata
+    const chips = [];
+    if (data.ubicacion) chips.push(`📍 ${data.ubicacion}`);
+    if (generoRaw) chips.push(`🎵 ${generoRaw}`);
+    if (esOferta && data.disponible !== undefined) {
+      chips.push(data.disponible ? '✅ Disponible' : '🔴 No disponible');
+    }
+    if (!esOferta && data.abierta !== undefined) {
+      chips.push(data.abierta ? '🟢 Solicitud abierta' : '🔴 Solicitud cerrada');
+    }
+    if (!esOferta && data.fechaEvento) {
+      chips.push(`📅 ${new Date(data.fechaEvento).toLocaleDateString('es-NI', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+    }
+    if (data.fechaPublicacion) {
+      chips.push(`🕐 Publicado: ${new Date(data.fechaPublicacion).toLocaleDateString('es-NI')}`);
+    }
+
+    // ── Botón de postulación
+    const idForHire = esOferta ? (data.idOfertaServicio || data.id) : (data.idSolicitudContratacion || data.id);
+    const btnPostularHtml = isAuth
+      ? `<button class="btn-detalle-postular" id="btn-detalle-postular"
+           data-id="${idForHire}" data-solicitud="${!esOferta}" data-title="${encodeURIComponent(data.titulo)}">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+           </svg>
+           ${esOferta ? 'Solicitar Contratación' : 'Postularme como Músico'}
+         </button>`
+      : `<button class="btn-detalle-postular" onclick="this.disabled=true" style="opacity:0.7;cursor:not-allowed">
+           Inicia sesión para ${esOferta ? 'contratar' : 'postularte'}
+         </button>`;
+
+    // ── Ensamblado del HTML final
+    const galleryBgClass = this._getGenreClass(generoRaw);
+    card.innerHTML = `
+      <div class="detalle-gallery ${fotos.length === 0 ? ('gig-cover-wrap ' + galleryBgClass) : ''}">
+        ${galleryHtml}
+        <span class="detalle-gallery-badge">${esOferta ? '🎵 OFERTA MUSICAL' : '💼 SOLICITUD DE EVENTO'}</span>
+        ${verificado ? `<span class="detalle-verified-badge">✓ Artista Verificado</span>` : ''}
+      </div>
+
+      <div class="detalle-body">
+        <div class="detalle-header-row">
+          <img src="${avatarUrl}" class="detalle-avatar" alt="${nombre}"
+            onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=0d6855&color=fff'" />
+          <div class="detalle-author-info">
+            <span class="detalle-author-name">${nombre}</span>
+            <span class="detalle-author-tag">${authorTag}</span>
+          </div>
+          <div class="detalle-price-badge">${precio}</div>
+        </div>
+
+        <h2 class="detalle-title">${data.titulo}</h2>
+
+        <div class="detalle-meta-chips">
+          ${chips.map(c => `<span class="detalle-chip">${c}</span>`).join('')}
+        </div>
+
+        ${audioHtml}
+        ${videoHtml}
+
+        ${data.descripcion ? `
+          <div class="detalle-divider"></div>
+          <div class="detalle-desc-label">Descripción</div>
+          <p class="detalle-desc-text">${data.descripcion}</p>
+        ` : ''}
+
+        ${extraMediaHtml}
+
+        ${media.length === 0 ? `
+          <div style="background:#f8fafc;border-radius:12px;padding:14px 16px;text-align:center;color:#94a3b8;font-size:0.84rem;margin-top:12px;">
+            📁 Sin archivos multimedia adjuntos
+          </div>` : ''}
+
+        <div class="detalle-footer">
+          <button class="btn-detalle-cerrar" id="btn-detalle-cerrar">← Volver</button>
+          ${btnPostularHtml}
+        </div>
+      </div>
+    `;
+
+    // ── Eventos del modal de detalle
+    // Cerrar
+    card.querySelector('#btn-detalle-cerrar')?.addEventListener('click', () => {
+      const overlay = document.querySelector('#modal-detalle');
+      if (overlay) overlay.style.display = 'none';
+      document.body.style.overflow = '';
+      document.querySelectorAll('audio.detalle-audio-element, video.detalle-video-player').forEach(a => a.pause());
+    });
+
+    // Thumbnails galería
+    card.querySelectorAll('.detalle-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const mainImg = card.querySelector('#detalle-main-img');
+        if (mainImg) mainImg.src = thumb.dataset.src;
+        card.querySelectorAll('.detalle-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
       });
     });
+
+    // Reproductor(es) de audio real en el modal
+    card.querySelectorAll('.detalle-audio-player-row').forEach(row => {
+      const playBtn = row.querySelector('.btn-play-audio-track');
+      const audioEl = row.querySelector('.detalle-audio-element');
+      const timeEl = row.querySelector('.detalle-audio-time');
+      const iconPlay = row.querySelector('.dpa-icon-play');
+      const iconPause = row.querySelector('.dpa-icon-pause');
+
+      if (playBtn && audioEl) {
+        playBtn.addEventListener('click', () => {
+          if (audioEl.paused) {
+            // Pausar cualquier otro audio sonando
+            document.querySelectorAll('audio').forEach(a => {
+              if (a !== audioEl && !a.paused) {
+                a.pause();
+                const parentRow = a.closest('.detalle-audio-player-row');
+                if (parentRow) {
+                  const pI = parentRow.querySelector('.dpa-icon-play');
+                  const pauI = parentRow.querySelector('.dpa-icon-pause');
+                  if (pI) pI.style.display = 'block';
+                  if (pauI) pauI.style.display = 'none';
+                }
+              }
+            });
+
+            audioEl.play().then(() => {
+              if (iconPlay) iconPlay.style.display = 'none';
+              if (iconPause) iconPause.style.display = 'block';
+              row.closest('.detalle-audio-section')?.classList.add('playing');
+            }).catch(err => console.warn('[Detalle] Error audio:', err));
+          } else {
+            audioEl.pause();
+            if (iconPlay) iconPlay.style.display = 'block';
+            if (iconPause) iconPause.style.display = 'none';
+            row.closest('.detalle-audio-section')?.classList.remove('playing');
+          }
+        });
+
+        audioEl.addEventListener('timeupdate', () => {
+          const t = audioEl.currentTime;
+          const m = Math.floor(t / 60);
+          const s = Math.floor(t % 60).toString().padStart(2, '0');
+          if (timeEl) timeEl.textContent = `${m}:${s}`;
+        });
+
+        audioEl.addEventListener('ended', () => {
+          if (iconPlay) iconPlay.style.display = 'block';
+          if (iconPause) iconPause.style.display = 'none';
+          row.closest('.detalle-audio-section')?.classList.remove('playing');
+          if (timeEl) timeEl.textContent = '0:00';
+        });
+
+        audioEl.addEventListener('pause', () => {
+          if (iconPlay) iconPlay.style.display = 'block';
+          if (iconPause) iconPause.style.display = 'none';
+          row.closest('.detalle-audio-section')?.classList.remove('playing');
+        });
+      }
+    });
+
+    // Botón postular desde detalle
+    const btnPostular = card.querySelector('#btn-detalle-postular');
+    if (btnPostular && isAuth) {
+      btnPostular.addEventListener('click', () => {
+        // Cerrar modal detalle
+        const overlay = document.querySelector('#modal-detalle');
+        if (overlay) overlay.style.display = 'none';
+        document.querySelectorAll('audio.detalle-audio-element').forEach(a => a.pause());
+
+        // Abrir modal de contratación simulando click en btn-solicitar
+        const gigId = btnPostular.dataset.id;
+        const esSolicitud = btnPostular.dataset.solicitud === 'true';
+        const titulo = decodeURIComponent(btnPostular.dataset.title || 'Servicio Musical');
+
+        const modalHire = document.querySelector('#modal-hire-request');
+        const summaryCard = document.querySelector('#hire-summary-card');
+        if (summaryCard) {
+          summaryCard.innerHTML = `
+            <h4>${titulo}</h4>
+            <p><small>${esSolicitud ? 'Postulación a Solicitud de Evento' : 'Solicitud de Contratación de Músico'}</small></p>
+          `;
+        }
+        // Guardar el targetGigId en el form
+        if (modalHire) {
+          modalHire.dataset.targetId = gigId;
+          modalHire.dataset.esSolicitud = esSolicitud;
+          modalHire.style.display = 'flex';
+        }
+      });
+    }
   },
 
   // ─────────────────────────────────────────────
