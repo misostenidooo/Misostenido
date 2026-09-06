@@ -10,22 +10,22 @@
 La solución está construida con una arquitectura desacoplada que integra:
 - **Backend:** API RESTful en **.NET 9 (C#)** con seguridad basada en **JWT** y acceso a datos mediante **SQL Server** y procedimientos almacenados.
 - **Frontend:** Single Page Application (SPA) en **JavaScript moderno (ES6+)** con diseño modular, reproductor de audio/video integrado y modo oscuro.
-- **Almacenamiento Multimedia:** Integración con **Supabase Storage** y CDN para streaming de audio, video e imágenes.
+- **Almacenamiento Multimedia:** Integración con **Supabase Storage** y CDN para archivos de audio, video e imágenes sin límite de almacenamiento.
 
 ---
 
-## Organización y Propósito de las Ramas
+## Ramas del Repositorio
 
-Para mantener un desarrollo ordenado y modular durante el hackathon, el proyecto se dividió en tres ramas principales según su función:
+El proyecto está dividido en tres ramas, cada una con un propósito específico:
 
-- **`main` (Rama Principal / Producción):**
-  Es la rama central del proyecto. Su función es alojar la versión final, unificada y estable del sistema completo. Aquí se encuentran integrados el Backend, el Frontend y la Base de Datos listos para su ejecución y entrega.
+**`main` — Rama Principal**
+Es la rama de producción y entrega final. Contiene el proyecto completo integrado: backend, frontend y base de datos juntos. Todo lo que se quiera presentar o entregar oficialmente debe estar aquí.
 
-- **`backend` (Rama del Servidor y Base de Datos):**
-  Fue creada exclusivamente para el desarrollo de la lógica del servidor. Contiene la solución de la API REST en .NET 9 (controladores, servicios, modelos DTOs, autenticación JWT) junto con los scripts y respaldos de la Base de Datos en SQL Server.
+**`backend` — Desarrollo del Backend**
+Esta rama fue creada exclusivamente para el desarrollo de la API en .NET 9. Aquí se trabaja todo lo relacionado con el servidor: los controladores que manejan las peticiones, los servicios con la lógica del negocio, los modelos de datos, la autenticación con JWT y la conexión a SQL Server mediante procedimientos almacenados.
 
-- **`frontend` (Rama de Interfaz de Usuario):**
-  Fue creada exclusivamente para la construcción visual y la experiencia de usuario. Contiene la aplicación web (HTML5, CSS3, JavaScript ES6+), todos los módulos visuales (Feed interactivo, Creatividad, Contrataciones, Eventos, Perfil) y los servicios de cliente que se comunican con la API y con Supabase Storage.
+**`frontend` — Desarrollo del Frontend**
+Esta rama contiene todo el trabajo de la interfaz de usuario. Se desarrolló aquí la aplicación web (SPA) en JavaScript, con todas las vistas y módulos del sistema: el feed, creatividad, contrataciones, eventos, perfiles y más. También incluye los estilos CSS, los componentes reutilizables y la integración con Supabase para el almacenamiento de archivos multimedia.
 
 ---
 
