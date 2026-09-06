@@ -10,50 +10,22 @@
 La solución está construida con una arquitectura desacoplada que integra:
 - **Backend:** API RESTful en **.NET 9 (C#)** con seguridad basada en **JWT** y acceso a datos mediante **SQL Server** y procedimientos almacenados.
 - **Frontend:** Single Page Application (SPA) en **JavaScript moderno (ES6+)** con diseño modular, reproductor de audio/video integrado y modo oscuro.
-- **Almacenamiento Multimedia:** Integración con **Supabase Storage** y CDN para archivos de audio, video e imágenes sin límite de almacenamiento.
+- **Almacenamiento Multimedia:** Integración con **Supabase Storage** y CDN para streaming de audio, video e imágenes.
 
 ---
 
-## Estructura y Gestión de Ramas (Git)
+## Organización y Propósito de las Ramas
 
-El repositorio sigue un modelo de ramas organizado para separar las responsabilidades de desarrollo:
+Para mantener un desarrollo ordenado y modular durante el hackathon, el proyecto se dividió en tres ramas principales según su función:
 
-| Rama | Propósito | Descripción |
-| :--- | :--- | :--- |
-| **`main`** | **Producción / Principal** | Versión unificada y lista para entrega del proyecto completo (Backend, Frontend y Scripts de Base de Datos integrados). |
-| **`backend`** | **Desarrollo Backend** | Rama de trabajo para la API REST en .NET 9, controladores, servicios, modelos DTOs, seguridad JWT y scripts de SQL Server. |
-| **`frontend`** | **Desarrollo Frontend** | Rama de trabajo para la interfaz de usuario, componentes, vistas SPA, estilos CSS, lógica de cliente e integración con Supabase. |
+- **`main` (Rama Principal / Producción):**
+  Es la rama central del proyecto. Su función es alojar la versión final, unificada y estable del sistema completo. Aquí se encuentran integrados el Backend, el Frontend y la Base de Datos listos para su ejecución y entrega.
 
-### Flujo de Trabajo con Ramas
+- **`backend` (Rama del Servidor y Base de Datos):**
+  Fue creada exclusivamente para el desarrollo de la lógica del servidor. Contiene la solución de la API REST en .NET 9 (controladores, servicios, modelos DTOs, autenticación JWT) junto con los scripts y respaldos de la Base de Datos en SQL Server.
 
-1. **Trabajar en el Backend:**
-   ```bash
-   git checkout backend
-   git pull origin backend
-   # Realizar cambios y guardar:
-   git add .
-   git commit -m "feat(modulo): descripcion del cambio"
-   git push origin backend
-   ```
-
-2. **Trabajar en el Frontend:**
-   ```bash
-   git checkout frontend
-   git pull origin frontend
-   # Realizar cambios y guardar:
-   git add .
-   git commit -m "feat(ui): descripcion del cambio"
-   git push origin frontend
-   ```
-
-3. **Integrar cambios a la rama principal (`main`):**
-   ```bash
-   git checkout main
-   git pull origin main
-   git merge backend
-   git merge frontend
-   git push origin main
-   ```
+- **`frontend` (Rama de Interfaz de Usuario):**
+  Fue creada exclusivamente para la construcción visual y la experiencia de usuario. Contiene la aplicación web (HTML5, CSS3, JavaScript ES6+), todos los módulos visuales (Feed interactivo, Creatividad, Contrataciones, Eventos, Perfil) y los servicios de cliente que se comunican con la API y con Supabase Storage.
 
 ---
 
