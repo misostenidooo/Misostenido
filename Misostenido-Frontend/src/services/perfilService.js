@@ -44,20 +44,26 @@ export const perfilService = {
       Ubicacion: dto.ubicacion || null,
       GeneroMusical: dto.generoMusical || null,
       Instrumento: dto.instrumento || null,
-      FotoPerfilUrl: dto.fotoPerfilUrl || null,
+      FotoPerfilUrl: dto.fotoPerfilUrl !== undefined ? dto.fotoPerfilUrl : null,
     };
 
     const response = await api.put('/usuario/me', payload);
 
-    // Actualizar el estado global del store
-    const currentUser = store.getState().user || {};
+    // Actualizar el estado global del store y localStorage
+    const currentUser = store.getState().user || JSON.parse(localStorage.getItem('misostenido_user') || '{}');
     const updatedUser = {
       ...currentUser,
       name: dto.nombre || currentUser.name,
-      photoUrl: dto.fotoPerfilUrl || currentUser.photoUrl,
+      photoUrl: dto.fotoPerfilUrl !== undefined ? dto.fotoPerfilUrl : currentUser.photoUrl,
+      location: dto.ubicacion !== undefined ? dto.ubicacion : currentUser.location,
+      generoMusical: dto.generoMusical !== undefined ? dto.generoMusical : currentUser.generoMusical,
+      instrumento: dto.instrumento !== undefined ? dto.instrumento : currentUser.instrumento,
     };
     store.setState({ user: updatedUser });
     localStorage.setItem('misostenido_user', JSON.stringify(updatedUser));
+
+    // Notificar a la aplicación para sincronizar Navbar, Feed y demás vistas
+    window.dispatchEvent(new CustomEvent('user-profile-updated', { detail: updatedUser }));
 
     return response;
   },
@@ -195,14 +201,60 @@ export const perfilService = {
   },
 
   /**
+   * Obtiene la lista de IDs de usuarios seguidos por el usuario actual
+   */
+  getSeguidosIds() {
+    try {
+      const stored = localStorage.getItem('misostenido_seguidos');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  /**
+   * Guarda o remueve un ID de usuario de la lista de seguidos local
+   */
+  guardarSeguidoLocal(idUsuario, isFollowing) {
+    try {
+      let list = this.getSeguidosIds();
+      const idNum = parseInt(idUsuario, 10);
+      if (isNaN(idNum)) return;
+      if (isFollowing) {
+        if (!list.includes(idNum)) list.push(idNum);
+      } else {
+        list = list.filter(id => id !== idNum);
+      }
+      localStorage.setItem('misostenido_seguidos', JSON.stringify(list));
+    } catch (e) {}
+  },
+
+  /**
    * Seguir / Dejar de seguir a un usuario
    * @param {number} idUsuario
    */
   async toggleSeguir(idUsuario) {
+    const idNum = parseInt(idUsuario, 10);
     try {
-      return await api.post(`/social/seguir/${idUsuario}`, {});
+      const res = await api.post(`/social/seguir/${idUsuario}`, {});
+      const isFollowing = res?.accion === 'SIGUIENDO' || res?.seguido === true || res?.isFollowing === true;
+      const isUnfollowing = res?.accion === 'DEJADO_DE_SEGUIR' || res?.seguido === false;
+
+      if (isFollowing) {
+        this.guardarSeguidoLocal(idNum, true);
+      } else if (isUnfollowing) {
+        this.guardarSeguidoLocal(idNum, false);
+      } else {
+        const currentList = this.getSeguidosIds();
+        const currentlyFollowing = currentList.includes(idNum);
+        this.guardarSeguidoLocal(idNum, !currentlyFollowing);
+      }
+      return res;
     } catch (e) {
-      return { accion: 'ERROR', mensaje: e.message };
+      const currentList = this.getSeguidosIds();
+      const currentlyFollowing = currentList.includes(idNum);
+      this.guardarSeguidoLocal(idNum, !currentlyFollowing);
+      return { accion: currentlyFollowing ? 'DEJADO_DE_SEGUIR' : 'SIGUIENDO', local: true };
     }
   },
 
@@ -211,10 +263,20 @@ export const perfilService = {
    * @param {number} idUsuario
    */
   async esSeguidor(idUsuario) {
+    const idNum = parseInt(idUsuario, 10);
+    const localSeguidos = this.getSeguidosIds();
+    if (localSeguidos.includes(idNum)) {
+      return { esSeguidor: true };
+    }
+
     try {
-      return await api.get(`/social/es-seguidor/${idUsuario}`);
+      const res = await api.get(`/social/es-seguidor/${idUsuario}`);
+      if (res && (res.esSeguidor || res.siguiendo)) {
+        this.guardarSeguidoLocal(idNum, true);
+      }
+      return res || { esSeguidor: false };
     } catch (e) {
-      return { esSeguidor: false };
+      return { esSeguidor: localSeguidos.includes(idNum) };
     }
   },
 
@@ -224,25 +286,8 @@ export const perfilService = {
    * @param {string} carpeta
    */
   async subirArchivo(file, carpeta = 'perfiles') {
-    const formData = new FormData();
-    formData.append('archivos', file);
-
-    const token = localStorage.getItem('misostenido_token');
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch(`http://localhost:5000/api/Upload?carpeta=${carpeta}`, {
-      method: 'POST',
-      headers,
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.mensaje || 'Error al subir archivo');
-    }
-
-    return await res.json();
+    const { storageService } = await import('./storageService.js');
+    return await storageService.uploadFile(file);
   },
 
   /**

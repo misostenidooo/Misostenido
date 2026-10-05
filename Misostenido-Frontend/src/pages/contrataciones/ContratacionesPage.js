@@ -71,13 +71,24 @@ export const ContratacionesPage = {
             <div class="search-field search-select">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
               <select id="hero-select-ubicacion">
-                <option value="">Todas las Ciudades</option>
+                <option value="">Todas las Ciudades (Nicaragua)</option>
                 <option value="Managua">Managua</option>
                 <option value="León">León</option>
                 <option value="Granada">Granada</option>
-                <option value="Estelí">Estelí</option>
+                <option value="Masaya">Masaya</option>
                 <option value="Matagalpa">Matagalpa</option>
+                <option value="Estelí">Estelí</option>
+                <option value="Chinandega">Chinandega</option>
                 <option value="Rivas">Rivas / San Juan del Sur</option>
+                <option value="Carazo">Carazo / Jinotepe</option>
+                <option value="Jinotega">Jinotega</option>
+                <option value="Chontales">Chontales / Juigalpa</option>
+                <option value="Boaco">Boaco</option>
+                <option value="Madriz">Madriz / Somoto</option>
+                <option value="Nueva Segovia">Nueva Segovia / Ocotal</option>
+                <option value="Río San Juan">Río San Juan / San Carlos</option>
+                <option value="Costa Caribe Norte">Costa Caribe Norte (Bilwi)</option>
+                <option value="Costa Caribe Sur">Costa Caribe Sur (Bluefields)</option>
               </select>
             </div>
 
@@ -257,7 +268,25 @@ export const ContratacionesPage = {
               <div class="form-row-2">
                 <div class="form-group">
                   <label>Ubicación / Ciudad *</label>
-                  <input type="text" id="gig-location" placeholder="Ej: Managua, Nicaragua" required />
+                  <select id="gig-location" required>
+                    <option value="Managua, Nicaragua">Managua, Nicaragua</option>
+                    <option value="León, Nicaragua">León, Nicaragua</option>
+                    <option value="Granada, Nicaragua">Granada, Nicaragua</option>
+                    <option value="Masaya, Nicaragua">Masaya, Nicaragua</option>
+                    <option value="Matagalpa, Nicaragua">Matagalpa, Nicaragua</option>
+                    <option value="Estelí, Nicaragua">Estelí, Nicaragua</option>
+                    <option value="Chinandega, Nicaragua">Chinandega, Nicaragua</option>
+                    <option value="Rivas, Nicaragua">Rivas, Nicaragua</option>
+                    <option value="Carazo, Nicaragua">Carazo, Nicaragua</option>
+                    <option value="Jinotega, Nicaragua">Jinotega, Nicaragua</option>
+                    <option value="Chontales, Nicaragua">Chontales, Nicaragua</option>
+                    <option value="Boaco, Nicaragua">Boaco, Nicaragua</option>
+                    <option value="Madriz, Nicaragua">Madriz, Nicaragua</option>
+                    <option value="Nueva Segovia, Nicaragua">Nueva Segovia, Nicaragua</option>
+                    <option value="Río San Juan, Nicaragua">Río San Juan, Nicaragua</option>
+                    <option value="Costa Caribe Norte, Nicaragua">Costa Caribe Norte, Nicaragua</option>
+                    <option value="Costa Caribe Sur, Nicaragua">Costa Caribe Sur, Nicaragua</option>
+                  </select>
                 </div>
 
                 <div class="form-group" id="group-event-date" style="display:none">

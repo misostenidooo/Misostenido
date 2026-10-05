@@ -63,9 +63,28 @@ export const EventosPage = {
               <input type="text" id="ev-input-search" placeholder="Buscar eventos, artistas, talleres..." />
             </div>
             <div class="ev-search-divider"></div>
-            <div class="ev-search-field" style="max-width:200px">
+            <div class="ev-search-field" style="max-width:240px">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-              <input type="text" id="ev-input-ubicacion" placeholder="Ciudad (ej. Managua)" />
+              <select id="ev-input-ubicacion" style="border:none;outline:none;background:transparent;width:100%;font-size:.88rem;color:var(--color-text-main);cursor:pointer;">
+                <option value="">Todas las Ciudades</option>
+                <option value="Managua">Managua</option>
+                <option value="León">León</option>
+                <option value="Granada">Granada</option>
+                <option value="Masaya">Masaya</option>
+                <option value="Matagalpa">Matagalpa</option>
+                <option value="Estelí">Estelí</option>
+                <option value="Chinandega">Chinandega</option>
+                <option value="Rivas">Rivas / San Juan del Sur</option>
+                <option value="Carazo">Carazo / Jinotepe</option>
+                <option value="Jinotega">Jinotega</option>
+                <option value="Chontales">Chontales / Juigalpa</option>
+                <option value="Boaco">Boaco</option>
+                <option value="Madriz">Madriz / Somoto</option>
+                <option value="Nueva Segovia">Nueva Segovia / Ocotal</option>
+                <option value="Río San Juan">Río San Juan / San Carlos</option>
+                <option value="Costa Caribe Norte">Costa Caribe Norte (Bilwi)</option>
+                <option value="Costa Caribe Sur">Costa Caribe Sur (Bluefields)</option>
+              </select>
             </div>
             <button class="btn-ev-search" id="btn-ev-search">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -148,8 +167,26 @@ export const EventosPage = {
               </div>
 
               <div class="ev-form-group">
-                <label>Ubicación / Lugar *</label>
-                <input type="text" id="ev-ubicacion" placeholder="Ej: Blue Note CDMX, Polanco" required />
+                <label>Ubicación / Ciudad *</label>
+                <select id="ev-ubicacion" required>
+                  <option value="Managua, Nicaragua">Managua, Nicaragua</option>
+                  <option value="León, Nicaragua">León, Nicaragua</option>
+                  <option value="Granada, Nicaragua">Granada, Nicaragua</option>
+                  <option value="Masaya, Nicaragua">Masaya, Nicaragua</option>
+                  <option value="Matagalpa, Nicaragua">Matagalpa, Nicaragua</option>
+                  <option value="Estelí, Nicaragua">Estelí, Nicaragua</option>
+                  <option value="Chinandega, Nicaragua">Chinandega, Nicaragua</option>
+                  <option value="Rivas, Nicaragua">Rivas, Nicaragua</option>
+                  <option value="Carazo, Nicaragua">Carazo, Nicaragua</option>
+                  <option value="Jinotega, Nicaragua">Jinotega, Nicaragua</option>
+                  <option value="Chontales, Nicaragua">Chontales, Nicaragua</option>
+                  <option value="Boaco, Nicaragua">Boaco, Nicaragua</option>
+                  <option value="Madriz, Nicaragua">Madriz, Nicaragua</option>
+                  <option value="Nueva Segovia, Nicaragua">Nueva Segovia, Nicaragua</option>
+                  <option value="Río San Juan, Nicaragua">Río San Juan, Nicaragua</option>
+                  <option value="Costa Caribe Norte, Nicaragua">Costa Caribe Norte, Nicaragua</option>
+                  <option value="Costa Caribe Sur, Nicaragua">Costa Caribe Sur, Nicaragua</option>
+                </select>
               </div>
 
               <div class="ev-form-group">
@@ -682,6 +719,7 @@ export const EventosPage = {
 
     btnSearch?.addEventListener('click', triggerSearch);
     inputSearch?.addEventListener('keyup', e => { if (e.key === 'Enter') triggerSearch(); });
+    inputUbicacion?.addEventListener('change', triggerSearch);
 
     // ── Chips de filtro por tipo ───
     const filtersRow = document.querySelector('#ev-filters-row') || container.querySelector('#ev-filters-row');

@@ -4,6 +4,7 @@
  */
 import { authService } from '../../services/authService.js';
 import { feedService } from '../../services/feedService.js';
+import { perfilService } from '../../services/perfilService.js';
 import { AuthModal } from '../../components/modal/AuthModal.js';
 import { api } from '../../services/api.js';
 
@@ -12,6 +13,7 @@ export const FeedPage = {
   _selectedFiles: [], // Array de File objects
   _page: 1,
   _container: null,
+  _currentFilter: 'todos',
 
   render() {
     const user = authService.getCurrentUser() || {};
@@ -22,9 +24,12 @@ export const FeedPage = {
     container.className = 'feed-page animate-fade';
     this._container = container;
     this._selectedFiles = [];
+    this._currentFilter = 'todos';
 
-    const savedProfileBanner = localStorage.getItem('profile_banner_bg');
-    const profileBannerStyle = savedProfileBanner ? `background-image: url('${savedProfileBanner}');` : '';
+    const userId = user.id || user.idUsuario;
+    const meta = userId ? perfilService.getMetadatosExtendidos(userId) : null;
+    const userBannerUrl = meta?.fotoPortadaUrl || null;
+    const profileBannerStyle = userBannerUrl ? `background-image: url('${userBannerUrl}');` : '';
 
     container.innerHTML = `
       <div class="feed-layout">
@@ -38,16 +43,16 @@ export const FeedPage = {
             </div>
             <div class="profile-info">
               <div class="profile-avatar-wrap">
-                <img src="${avatarSrc}" alt="${user.name || 'Usuario'}" class="profile-avatar" />
+                <img src="${avatarSrc}" alt="${user.name || 'Usuario'}" class="profile-avatar" id="sidebar-user-avatar" />
                 <span class="profile-online-dot"></span>
               </div>
-              <h3 class="profile-name">${user.name || 'Usuario'}</h3>
-              <span class="profile-role-badge">${user.profileType || user.role || 'Músico'}</span>
-              <p class="profile-location">📍 Nicaragua</p>
+              <h3 class="profile-name" id="sidebar-user-name">${user.name || 'Usuario'}</h3>
+              <span class="profile-role-badge" id="sidebar-user-role">${user.profileType || user.role || 'Músico'}</span>
+              <p class="profile-location" id="sidebar-user-location">📍 ${user.location || user.ubicacion || 'Nicaragua'}</p>
               <div class="profile-stats-row">
-                <div class="pstat"><span class="pstat-num">1.2K</span><span class="pstat-label">Seguidores</span></div>
+                <div class="pstat"><span class="pstat-num" id="sidebar-user-followers">0</span><span class="pstat-label">Seguidores</span></div>
                 <div class="pstat-divider"></div>
-                <div class="pstat"><span class="pstat-num">45</span><span class="pstat-label">Colabos</span></div>
+                <div class="pstat"><span class="pstat-num" id="sidebar-user-following">0</span><span class="pstat-label">Siguiendo</span></div>
               </div>
               <a href="#/perfil" class="btn-view-profile">Ver mi perfil completo →</a>
             </div>
@@ -57,6 +62,10 @@ export const FeedPage = {
             <button class="feed-nav-item active" data-filter="todos">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
               <span>Feed Principal</span>
+            </button>
+            <button class="feed-nav-item" data-filter="siguiendo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Siguiendo</span>
             </button>
             <button class="feed-nav-item" data-filter="explorar">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -84,9 +93,8 @@ export const FeedPage = {
               <div class="fb-fake-input">
                 <span class="fb-fake-placeholder">¿Qué estás pensando, ${firstName}?</span>
                 <div class="fb-quick-icons">
-                  <span class="fb-icon-live" title="Video en vivo">🎥</span>
                   <span class="fb-icon-media" title="Foto/video">🖼️</span>
-                  <span class="fb-icon-emoji" title="Sentimiento/actividad">😊</span>
+                  <span class="fb-icon-audio" title="Música">🎵</span>
                 </div>
               </div>
             </div>
@@ -94,19 +102,14 @@ export const FeedPage = {
             <div class="fb-composer-divider"></div>
 
             <div class="fb-composer-actions">
-              <button class="fb-action-btn fb-action-live" id="btn-quick-live">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#f43f5e"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span>Video en vivo</span>
-              </button>
-
               <button class="fb-action-btn fb-action-photo" id="btn-quick-photo">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#22c55e"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span>Foto/video</span>
+                <span>Foto/Video</span>
               </button>
 
-              <button class="fb-action-btn fb-action-feeling" id="btn-quick-feeling">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#eab308"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                <span>Sentimiento/actividad</span>
+              <button class="fb-action-btn fb-action-audio" id="btn-quick-audio">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#0d6855"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span>Música</span>
               </button>
             </div>
           </div>
@@ -219,24 +222,17 @@ export const FeedPage = {
 
             </div>
 
-            <!-- Barra "Agregar a tu publicación" estilo Facebook -->
+            <!-- Barra "Agregar a tu publicación" -->
             <div class="fb-add-to-post-card">
               <span class="fb-add-title">Agregar a tu publicación</span>
               <div class="fb-add-icons">
-                <button class="fb-tool-btn fb-tool-photo" id="btn-tool-photo" title="Foto/video">
+                <button class="fb-tool-btn fb-tool-photo" id="btn-tool-photo" title="Foto/Video">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="#22c55e"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span style="font-size:0.75rem;color:#374151;font-weight:600">Foto/Video</span>
                 </button>
-                <button class="fb-tool-btn fb-tool-tag" title="Etiquetar personas">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#1877f2"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </button>
-                <button class="fb-tool-btn fb-tool-emoji" title="Sentimiento/actividad">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#eab308"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                </button>
-                <button class="fb-tool-btn fb-tool-location" title="Ubicación">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                </button>
-                <button class="fb-tool-btn fb-tool-audio" title="Audio / Canción">
+                <button class="fb-tool-btn fb-tool-audio" title="Música / Audio">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="#0d6855"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                  <span style="font-size:0.75rem;color:#374151;font-weight:600">Música</span>
                 </button>
               </div>
             </div>
@@ -290,6 +286,22 @@ export const FeedPage = {
     const comentarios = post.totalComentarios ?? post.comentarios ?? 0;
     const dioLike = post.dioLike || post.liked || false;
     const texto = post.texto || '';
+
+    // Determinar si el usuario autenticado es el autor de la publicación
+    const currentUser = authService.getCurrentUser() || {};
+    const currentUserId = currentUser.id ?? currentUser.idUsuario ?? currentUser.userId;
+    const currentUserName = (currentUser.name || currentUser.nombre || '').trim().toLowerCase();
+    const currentUserEmail = (currentUser.email || '').trim().toLowerCase();
+
+    const postAuthorId = post.autorId ?? post.idUsuario ?? post.usuarioId ?? post.autor?.id;
+    const postAuthorName = (post.autorNombre || post.autor?.nombre || '').trim().toLowerCase();
+    const postAuthorEmail = (post.autorEmail || post.autor?.email || '').trim().toLowerCase();
+
+    const isOwner = authService.isAuthenticated() && (
+      (currentUserId !== undefined && currentUserId !== null && postAuthorId !== undefined && postAuthorId !== null && String(currentUserId) === String(postAuthorId)) ||
+      (currentUserName && postAuthorName && currentUserName === postAuthorName) ||
+      (currentUserEmail && postAuthorEmail && currentUserEmail === postAuthorEmail)
+    );
     
     // Formateo de fecha
     let tiempoTexto = 'Hace un momento';
@@ -409,17 +421,20 @@ export const FeedPage = {
       ? `<svg class="verified-icon" width="14" height="14" viewBox="0 0 24 24" fill="#0d6855"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
       : '';
 
+    const followedIds = perfilService.getSeguidosIds();
+    const isFollowing = postAuthorId && followedIds.includes(Number(postAuthorId));
+
     return `
       <article class="post-card" data-post-id="${id}" id="post-${id}">
         <div class="post-header">
-          <div class="post-author">
+          <a href="${postAuthorId ? `#/perfil?id=${postAuthorId}` : `#/perfil`}" class="post-author" style="text-decoration:none; color:inherit; cursor:pointer;">
             <div class="post-avatar-wrap">
               <img src="${autorFoto}" alt="${autorNombre}" class="post-avatar-img" />
               <span class="post-avatar-status"></span>
             </div>
             <div class="post-author-info">
               <div class="post-author-name">
-                ${autorNombre}
+                <span>${autorNombre}</span>
                 ${verificadoBadge}
                 <span class="post-role-tag">${autorTipo}</span>
               </div>
@@ -429,7 +444,30 @@ export const FeedPage = {
                 <span class="post-audience">🌍</span>
               </div>
             </div>
-          </div>
+          </a>
+          ${!isOwner && postAuthorId ? `
+            <button class="btn-seguir btn-follow-feed ${isFollowing ? 'following' : ''}" data-user-id="${postAuthorId}" type="button" style="margin-left:auto; font-size:0.75rem; padding:4px 12px;">
+              ${isFollowing ? 'Siguiendo' : '+ Seguir'}
+            </button>
+          ` : ''}
+          ${isOwner ? `
+            <div class="post-header-menu-wrap">
+              <button class="btn-post-menu-trigger" data-post-id="${id}" title="Opciones de publicación" aria-label="Opciones">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>
+              </button>
+              <div class="post-menu-dropdown" id="post-menu-dropdown-${id}" style="display:none">
+                <button class="post-menu-item btn-delete-post" data-post-id="${id}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  <span>Eliminar publicación</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
         </div>
 
         ${texto ? `<p class="post-text">${texto}</p>` : ''}
@@ -469,28 +507,128 @@ export const FeedPage = {
   },
 
   // ─────────────────────────────────────────────
+  // CARGAR DATOS REALES DEL PERFIL EN EL SIDEBAR
+  // ─────────────────────────────────────────────
+  async loadUserProfileSidebar(container) {
+    if (!authService.isAuthenticated()) return;
+
+    try {
+      const myProfile = await perfilService.getMiPerfil();
+      if (myProfile) {
+        const followersEl = container.querySelector('#sidebar-user-followers');
+        const followingEl = container.querySelector('#sidebar-user-following');
+        const locationEl = container.querySelector('#sidebar-user-location');
+        const nameEl = container.querySelector('#sidebar-user-name');
+        const roleEl = container.querySelector('#sidebar-user-role');
+        const avatarEl = container.querySelector('#sidebar-user-avatar');
+        const bannerEl = container.querySelector('#profile-banner-el');
+        const composerAvatar = container.querySelector('.fb-user-avatar');
+        const modalAvatar = document.querySelector('.fb-modal-avatar');
+
+        const seguidosList = perfilService.getSeguidosIds();
+        const totalSeguidos = (myProfile.totalSeguidos !== undefined && myProfile.totalSeguidos !== null && myProfile.totalSeguidos > 0)
+          ? myProfile.totalSeguidos
+          : seguidosList.length;
+
+        if (followersEl) followersEl.textContent = myProfile.totalSeguidores ?? 0;
+        if (followingEl) followingEl.textContent = totalSeguidos;
+        if (locationEl && myProfile.ubicacion) locationEl.textContent = `📍 ${myProfile.ubicacion}`;
+        if (nameEl && myProfile.nombre) nameEl.textContent = myProfile.nombre;
+        if (roleEl && (myProfile.tipoPerfil || myProfile.generoMusical)) roleEl.textContent = myProfile.tipoPerfil || myProfile.generoMusical;
+        
+        const avatarUrl = myProfile.fotoPerfilUrl ? this.formatMediaUrl(myProfile.fotoPerfilUrl) : null;
+        if (avatarUrl) {
+          if (avatarEl) avatarEl.src = avatarUrl;
+          if (composerAvatar) composerAvatar.src = avatarUrl;
+          if (modalAvatar) modalAvatar.src = avatarUrl;
+        }
+
+        // Portada / Banner sincronizado por usuario
+        const meta = perfilService.getMetadatosExtendidos(myProfile.idUsuario);
+        const bannerUrl = meta?.fotoPortadaUrl || null;
+        if (bannerEl) {
+          if (bannerUrl) {
+            bannerEl.style.backgroundImage = `url('${bannerUrl}')`;
+          } else {
+            bannerEl.style.backgroundImage = 'none';
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[FeedPage] Error cargando perfil en sidebar:', e);
+    }
+  },
+
+  // ─────────────────────────────────────────────
+  // APLICAR FILTRO (TODOS VS SIGUIENDO)
+  // ─────────────────────────────────────────────
+  applyFilter(container) {
+    if (this._currentFilter === 'siguiendo') {
+      const seguidos = perfilService.getSeguidosIds();
+      const filtered = (this._posts || []).filter(p => {
+        const aid = p.autorId ?? p.idUsuario ?? p.usuarioId ?? p.autor?.idUsuario ?? p.autor?.id;
+        return aid && seguidos.includes(Number(aid));
+      });
+      this.renderPostsList(filtered, container);
+    } else {
+      this.renderPostsList(this._posts || [], container);
+    }
+  },
+
+  // ─────────────────────────────────────────────
+  // RENDERIZAR LISTA DE POSTS CON ESTADOS VACÍOS
+  // ─────────────────────────────────────────────
+  renderPostsList(posts, container) {
+    const postsList = container.querySelector('#posts-list');
+    if (!postsList) return;
+
+    if (!posts || posts.length === 0) {
+      if (this._currentFilter === 'siguiendo') {
+        postsList.innerHTML = `
+          <div class="empty-feed-state">
+            <div class="empty-feed-icon">👥</div>
+            <h3>No hay publicaciones de tus artistas seguidos</h3>
+            <p>Aún no sigues a usuarios que hayan publicado o sus publicaciones no están disponibles. ¡Explora la comunidad y sigue a tus músicos preferidos!</p>
+            <button class="btn-primary btn-ver-todo-feed" id="btn-ver-todo-feed" style="margin-top:14px;padding:9px 20px;border-radius:10px;background:#0d6855;color:#fff;border:none;font-weight:700;cursor:pointer;">Ver Todo el Feed</button>
+          </div>
+        `;
+        postsList.querySelector('#btn-ver-todo-feed')?.addEventListener('click', () => {
+          container.querySelectorAll('.feed-nav-item').forEach(b => {
+            b.classList.toggle('active', b.dataset.filter === 'todos');
+          });
+          this._currentFilter = 'todos';
+          this.applyFilter(container);
+        });
+      } else {
+        postsList.innerHTML = `
+          <div class="empty-feed-state">
+            <div class="empty-feed-icon">🎵</div>
+            <h3>No hay publicaciones aún</h3>
+            <p>¡Sé el primero en compartir fotos, videos o música con la comunidad!</p>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    postsList.innerHTML = posts.map(p => this.renderPost(p)).join('');
+    this.bindPostEvents(container);
+  },
+
+  // ─────────────────────────────────────────────
   // CARGAR PUBLICACIONES DESDE LA API
   // ─────────────────────────────────────────────
   async loadFeed(container) {
     const postsList = container.querySelector('#posts-list');
     if (!postsList) return;
 
-    const { posts } = await feedService.getPosts({ page: this._page, pageSize: 10 });
-    this._posts = posts;
+    // Cargar perfil propio en paralelo
+    this.loadUserProfileSidebar(container);
 
-    if (!posts || posts.length === 0) {
-      postsList.innerHTML = `
-        <div class="empty-feed-state">
-          <div class="empty-feed-icon">🎵</div>
-          <h3>No hay publicaciones aún</h3>
-          <p>¡Sé el primero en compartir fotos, videos o música con la comunidad!</p>
-        </div>
-      `;
-      return;
-    }
+    const { posts } = await feedService.getPosts({ page: this._page, pageSize: 20 });
+    this._posts = posts || [];
 
-    postsList.innerHTML = posts.map(p => this.renderPost(p)).join('');
-    this.bindPostEvents(container);
+    this.applyFilter(container);
 
     // Auto-scroll y resaltado si se recibe un ID por parámetro (ej: #/feed?id=5)
     const hash = window.location.hash || '';
@@ -514,7 +652,7 @@ export const FeedPage = {
   },
 
   // ─────────────────────────────────────────────
-  // CARGAR SIDEBARS
+  // CARGAR SIDEBARS CON DATOS Y BOTONES DE SEGUIR REALES
   // ─────────────────────────────────────────────
   async loadSidebars(container) {
     const oppList = container.querySelector('#oportunidades-list');
@@ -560,21 +698,69 @@ export const FeedPage = {
     const sugList = container.querySelector('#sugeridos-list');
     const artistas = await feedService.getMusicosSugeridosSidebar();
     if (sugList) {
+      const seguidos = perfilService.getSeguidosIds();
       sugList.innerHTML = (!artistas || artistas.length === 0)
         ? `<p class="empty-sidebar-msg">No hay artistas destacados.</p>`
         : artistas.slice(0, 3).map(a => {
-          const avt = a.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(a.nombre)}&background=0d6855&color=fff`;
+          const aId = a.idUsuario || a.id || a.idArtista || '';
+          const profileLink = aId ? `#/perfil?id=${aId}` : `#/perfil`;
+          const avt = a.fotoPerfilUrl ? this.formatMediaUrl(a.fotoPerfilUrl) : `https://ui-avatars.com/api/?name=${encodeURIComponent(a.nombre)}&background=0d6855&color=fff`;
+          const isFollowed = aId && seguidos.includes(Number(aId));
           return `
             <div class="sidebar-user-item">
-              <img src="${avt}" alt="${a.nombre}" class="sidebar-user-avatar" />
-              <div class="sidebar-user-info">
-                <p class="sidebar-user-name">${a.nombre}</p>
-                <small class="sidebar-user-role">${a.generoMusical || a.tipoPerfil || 'Músico'}</small>
-              </div>
-              <a href="#/" class="btn-seguir">Ver Perfil</a>
+              <a href="${profileLink}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;flex:1;min-width:0">
+                <img src="${avt}" alt="${a.nombre}" class="sidebar-user-avatar" />
+                <div class="sidebar-user-info">
+                  <p class="sidebar-user-name">${a.nombre}</p>
+                  <small class="sidebar-user-role">${a.generoMusical || a.tipoPerfil || 'Músico'}</small>
+                </div>
+              </a>
+              <button class="btn-seguir btn-follow-feed ${isFollowed ? 'following' : ''}" data-user-id="${aId}" type="button">${isFollowed ? 'Siguiendo' : '+ Seguir'}</button>
             </div>
           `;
         }).join('');
+
+      // Conectar botones de seguir del sidebar
+      sugList.querySelectorAll('.btn-follow-feed').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (!authService.isAuthenticated()) {
+            AuthModal.show('Seguir Artista', 'Inicia sesión para seguir a este artista.');
+            return;
+          }
+          const uid = btn.getAttribute('data-user-id');
+          if (!uid) return;
+
+          btn.disabled = true;
+          try {
+            const res = await perfilService.toggleSeguir(uid);
+            const seguidosActual = perfilService.getSeguidosIds();
+            const isNowFollowing = seguidosActual.includes(Number(uid)) || res?.accion === 'SIGUIENDO' || res?.seguido === true || res?.isFollowing === true;
+
+            container.querySelectorAll(`.btn-follow-feed[data-user-id="${uid}"]`).forEach(b => {
+              if (isNowFollowing) {
+                b.classList.add('following');
+                b.textContent = 'Siguiendo';
+              } else {
+                b.classList.remove('following');
+                b.textContent = '+ Seguir';
+              }
+            });
+
+            const followingEl = container.querySelector('#sidebar-user-following');
+            if (followingEl) followingEl.textContent = seguidosActual.length;
+
+            if (this._currentFilter === 'siguiendo') {
+              this.applyFilter(container);
+            }
+          } catch(err) {
+            console.error('Error al seguir:', err);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
     }
   },
 
@@ -583,16 +769,17 @@ export const FeedPage = {
   // ─────────────────────────────────────────────
   renderSelectedFilesPreview(container) {
     const modalEl = document.querySelector('#fb-modal-overlay') || container;
-    const dropArea = modalEl.querySelector('#fb-drop-area');
-    const previewsGrid = modalEl.querySelector('#fb-previews-grid');
-    const addMoreRow = modalEl.querySelector('#fb-add-more-row');
-    const modalSubmit = modalEl.querySelector('#btn-fb-submit');
-    const textarea = modalEl.querySelector('#fb-modal-textarea');
+    const mediaContainer = modalEl?.querySelector('#fb-media-container');
+    const dropArea = modalEl?.querySelector('#fb-drop-area');
+    const previewsGrid = modalEl?.querySelector('#fb-previews-grid');
+    const addMoreRow = modalEl?.querySelector('#fb-add-more-row');
+    const modalSubmit = modalEl?.querySelector('#btn-fb-submit');
+    const textarea = modalEl?.querySelector('#fb-modal-textarea');
 
-    if (!dropArea || !previewsGrid) return;
+    if (!modalEl || !previewsGrid) return;
 
     if (this._selectedFiles.length === 0) {
-      dropArea.style.display = 'block';
+      if (dropArea) dropArea.style.display = 'block';
       previewsGrid.style.display = 'none';
       previewsGrid.innerHTML = '';
       if (addMoreRow) addMoreRow.style.display = 'none';
@@ -600,7 +787,8 @@ export const FeedPage = {
       return;
     }
 
-    dropArea.style.display = 'none';
+    if (mediaContainer) mediaContainer.style.display = 'block';
+    if (dropArea) dropArea.style.display = 'none';
     previewsGrid.style.display = 'grid';
     if (addMoreRow) addMoreRow.style.display = 'flex';
     if (modalSubmit) modalSubmit.disabled = false;
@@ -635,6 +823,7 @@ export const FeedPage = {
             <span class="fb-video-tag">🎬 Video</span>
           ` : `
             <img src="${objUrl}" alt="${file.name}" class="fb-preview-media" />
+            <span class="fb-video-tag" style="background:rgba(13,104,85,0.85)">📸 Foto</span>
           `}
         </div>
       `;
@@ -657,7 +846,73 @@ export const FeedPage = {
   attachEvents(container) {
     const isAuth = authService.isAuthenticated();
 
-    // Cambiar foto de portada/fondo del perfil
+    // Filtros del sidebar izquierdo (Feed Principal, Siguiendo, Explorar, etc.)
+    container.querySelectorAll('.feed-nav-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const filter = btn.dataset.filter;
+        if (!filter) return;
+
+        if (filter === 'contrataciones') {
+          window.location.hash = '#/contrataciones';
+          return;
+        }
+        if (filter === 'eventos') {
+          window.location.hash = '#/eventos';
+          return;
+        }
+        if (filter === 'explorar') {
+          window.location.hash = '#/perfil';
+          return;
+        }
+
+        if (filter === 'siguiendo') {
+          if (!authService.isAuthenticated()) {
+            AuthModal.show('Ver Seguidos', 'Inicia sesión para ver las publicaciones de las personas que sigues.');
+            return;
+          }
+        }
+
+        container.querySelectorAll('.feed-nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._currentFilter = filter;
+
+        this.applyFilter(container);
+      });
+    });
+
+    // Sincronizar avatar, nombre y portada en tiempo real si el usuario edita su perfil
+    const onProfileUpdated = (e) => {
+      const updated = e.detail || {};
+      if (updated.photoUrl) {
+        const fullPhoto = this.formatMediaUrl(updated.photoUrl);
+        const avatarEl = container.querySelector('#sidebar-user-avatar');
+        const composerAvatar = container.querySelector('.fb-user-avatar');
+        const modalAvatar = document.querySelector('.fb-modal-avatar');
+        if (avatarEl) avatarEl.src = fullPhoto;
+        if (composerAvatar) composerAvatar.src = fullPhoto;
+        if (modalAvatar) modalAvatar.src = fullPhoto;
+      }
+      if (updated.name) {
+        const nameEl = container.querySelector('#sidebar-user-name');
+        if (nameEl) nameEl.textContent = updated.name;
+      }
+      const u = authService.getCurrentUser();
+      const uid = u?.id || u?.idUsuario;
+      const m = uid ? perfilService.getMetadatosExtendidos(uid) : null;
+      const savedBanner = m?.fotoPortadaUrl || null;
+      const bannerEl = container.querySelector('#profile-banner-el');
+      if (bannerEl) {
+        if (savedBanner) {
+          bannerEl.style.backgroundImage = `url('${savedBanner}')`;
+        } else {
+          bannerEl.style.backgroundImage = 'none';
+        }
+      }
+    };
+    window.addEventListener('user-profile-updated', onProfileUpdated);
+
+    // Cambiar foto de portada/fondo del perfil directamente desde el Feed
     const btnChangeBanner = container.querySelector('#btn-change-profile-banner');
     const inputBannerFile = container.querySelector('#profile-banner-file-input');
     const bannerEl = container.querySelector('#profile-banner-el');
@@ -675,7 +930,11 @@ export const FeedPage = {
           const { storageService } = await import('../../services/storageService.js');
           const res = await storageService.uploadFile(file);
           if (res && res.url) {
-            localStorage.setItem('profile_banner_bg', res.url);
+            const u = authService.getCurrentUser();
+            const uid = u?.id || u?.idUsuario;
+            if (uid) {
+              perfilService.saveMetadatosExtendidos(uid, { fotoPortadaUrl: res.url });
+            }
             bannerEl.style.backgroundImage = `url('${res.url}')`;
             btnChangeBanner.textContent = '📷';
           }
@@ -739,13 +998,9 @@ export const FeedPage = {
       e.stopPropagation();
       openModal(true);
     });
-    container.querySelector('#btn-quick-live')?.addEventListener('click', (e) => {
+    container.querySelector('#btn-quick-audio')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      openModal(false);
-    });
-    container.querySelector('#btn-quick-feeling')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openModal(false);
+      openModal(true);
     });
 
     // Cerrar modal
@@ -1188,6 +1443,141 @@ export const FeedPage = {
       btn.addEventListener('click', () => {
         navigator.clipboard?.writeText(window.location.href);
         alert('🔗 ¡Enlace copiado al portapapeles!');
+      });
+    });
+
+    // 5. Menú de opciones y Eliminación de publicación
+    container.querySelectorAll('.btn-post-menu-trigger').forEach(trigger => {
+      if (trigger.dataset.bound === 'true') return;
+      trigger.dataset.bound = 'true';
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idPost = trigger.dataset.postId;
+        const dropdown = container.querySelector(`#post-menu-dropdown-${idPost}`);
+        if (!dropdown) return;
+
+        // Cerrar cualquier otro menú abierto
+        container.querySelectorAll('.post-menu-dropdown').forEach(d => {
+          if (d !== dropdown) d.style.display = 'none';
+        });
+
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+
+    // Cerrar dropdowns de posts al hacer click fuera
+    if (!container._hasPostMenuGlobalClose) {
+      container._hasPostMenuGlobalClose = true;
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.post-menu-dropdown').forEach(d => {
+          d.style.display = 'none';
+        });
+      });
+    }
+
+    // Botón eliminar publicación
+    container.querySelectorAll('.btn-delete-post').forEach(btn => {
+      if (btn.dataset.bound === 'true') return;
+      btn.dataset.bound = 'true';
+
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const idPost = btn.dataset.postId;
+        const dropdown = container.querySelector(`#post-menu-dropdown-${idPost}`);
+        if (dropdown) dropdown.style.display = 'none';
+
+        const confirmed = window.confirm('¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.');
+        if (!confirmed) return;
+
+        const postCard = container.querySelector(`#post-${idPost}`) || container.querySelector(`[data-post-id="${idPost}"]`);
+
+        try {
+          if (postCard) {
+            postCard.style.opacity = '0.4';
+            postCard.style.pointerEvents = 'none';
+          }
+
+          await feedService.eliminarPublicacion(idPost);
+
+          // Remover del estado en memoria
+          this._posts = (this._posts || []).filter(p => (p.idPublicacion != idPost && p.id != idPost));
+
+          // Animación suave de eliminación
+          if (postCard) {
+            postCard.style.transition = 'all 0.35s ease';
+            postCard.style.transform = 'scale(0.95)';
+            postCard.style.opacity = '0';
+            setTimeout(() => {
+              postCard.remove();
+              // Si no quedan posts, mostrar estado vacío
+              const postsList = container.querySelector('#posts-list');
+              if (postsList && postsList.querySelectorAll('.post-card').length === 0) {
+                postsList.innerHTML = `
+                  <div class="empty-feed-state">
+                    <div class="empty-feed-icon">🎵</div>
+                    <h3>No hay publicaciones aún</h3>
+                    <p>¡Sé el primero en compartir fotos, videos o música con la comunidad!</p>
+                  </div>
+                `;
+              }
+            }, 350);
+          }
+        } catch (err) {
+          if (postCard) {
+            postCard.style.opacity = '1';
+            postCard.style.pointerEvents = '';
+          }
+          alert('Error al eliminar la publicación: ' + (err.message || 'Error del servidor'));
+        }
+      });
+    });
+
+    // ─── BOTÓN SEGUIR EN PUBLICACIONES ───
+    container.querySelectorAll('.btn-follow-feed').forEach(btn => {
+      if (btn.dataset.boundFollow === 'true') return;
+      btn.dataset.boundFollow = 'true';
+
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!authService.isAuthenticated()) {
+          AuthModal.show('Seguir Artista', 'Inicia sesión para seguir a este artista y ver sus publicaciones.');
+          return;
+        }
+        const uid = btn.getAttribute('data-user-id');
+        if (!uid) return;
+
+        btn.disabled = true;
+        try {
+          const res = await perfilService.toggleSeguir(uid);
+          const seguidos = perfilService.getSeguidosIds();
+          const isNowFollowing = seguidos.includes(Number(uid)) || res?.accion === 'SIGUIENDO' || res?.seguido === true || res?.isFollowing === true;
+
+          // Sincronizar todos los botones del mismo usuario en la vista
+          container.querySelectorAll(`.btn-follow-feed[data-user-id="${uid}"]`).forEach(b => {
+            if (isNowFollowing) {
+              b.classList.add('following');
+              b.textContent = 'Siguiendo';
+            } else {
+              b.classList.remove('following');
+              b.textContent = '+ Seguir';
+            }
+          });
+
+          // Actualizar contador en sidebar
+          const followingEl = container.querySelector('#sidebar-user-following');
+          if (followingEl) followingEl.textContent = seguidos.length;
+
+          // Si el filtro actual es 'siguiendo', actualizar la lista
+          if (this._currentFilter === 'siguiendo') {
+            this.applyFilter(container);
+          }
+        } catch (err) {
+          console.error('Error al seguir artista desde el feed:', err);
+        } finally {
+          btn.disabled = false;
+        }
       });
     });
   }

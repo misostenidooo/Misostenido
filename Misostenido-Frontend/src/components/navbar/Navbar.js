@@ -240,8 +240,10 @@ export const Navbar = {
           html += `<div class="search-group-title">🎤 Artistas</div>`;
           html += artistas.slice(0, 4).map(a => {
             const av = a.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(a.nombre||'A')}&background=0d6855&color=fff&size=40`;
+            const aId = a.idUsuario || a.id || a.idArtista || '';
+            const navUrl = aId ? `#/perfil?id=${aId}` : `#/perfil`;
             return `
-              <div class="search-result-item" data-nav="#/perfil">
+              <div class="search-result-item" data-nav="${navUrl}">
                 <img src="${av}" class="search-result-avatar" />
                 <div class="search-result-info">
                   <span class="search-result-title">${a.nombre}</span>

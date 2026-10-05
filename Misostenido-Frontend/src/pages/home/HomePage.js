@@ -55,7 +55,26 @@ export const HomePage = {
             <div class="filter-divider"></div>
             <div class="filter-input-col">
               <span class="filter-icon">📍</span>
-              <input type="text" placeholder="Ubicación (ej. Managua)" class="filter-input" id="search-location" />
+              <select class="filter-select" id="search-location">
+                <option value="">Todas las Ubicaciones (Nicaragua)</option>
+                <option value="Managua">Managua</option>
+                <option value="León">León</option>
+                <option value="Granada">Granada</option>
+                <option value="Masaya">Masaya</option>
+                <option value="Matagalpa">Matagalpa</option>
+                <option value="Estelí">Estelí</option>
+                <option value="Chinandega">Chinandega</option>
+                <option value="Rivas">Rivas / San Juan del Sur</option>
+                <option value="Carazo">Carazo / Jinotepe</option>
+                <option value="Jinotega">Jinotega</option>
+                <option value="Chontales">Chontales / Juigalpa</option>
+                <option value="Boaco">Boaco</option>
+                <option value="Madriz">Madriz / Somoto</option>
+                <option value="Nueva Segovia">Nueva Segovia / Ocotal</option>
+                <option value="Río San Juan">Río San Juan / San Carlos</option>
+                <option value="Costa Caribe Norte">Costa Caribe Norte (Bilwi)</option>
+                <option value="Costa Caribe Sur">Costa Caribe Sur (Bluefields)</option>
+              </select>
             </div>
             <button class="btn-search-submit" id="btn-search-hero">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -65,11 +84,11 @@ export const HomePage = {
 
           <!-- BOTONES DE ACCIÓN RÁPIDA -->
           <div class="hero-quick-actions">
-            <button class="btn-quick-primary protected-action" data-feature="Crear Perfil de Músico">
+            <button class="btn-quick-primary protected-action" data-feature="Crear Perfil de Músico" data-nav="#/perfil">
               <span>🎤</span>
               <span>Soy Músico / Crear mi Perfil</span>
             </button>
-            <button class="btn-quick-secondary protected-action" data-feature="Contratar Músicos">
+            <button class="btn-quick-secondary protected-action" data-feature="Contratar Músicos" data-nav="#/contrataciones">
               <span>💼</span>
               <span>Quiero Contratar Músicos</span>
             </button>
@@ -77,24 +96,24 @@ export const HomePage = {
         </div>
       </section>
 
-      <!-- ================= MÉTRICAS / STATS ================= -->
+      <!-- ================= MÉTRICAS / STATS (100% REALES DE BD) ================= -->
       <section class="stats-section">
         <div class="stats-container">
           <div class="stat-box">
-            <h2 class="stat-number">+2,500</h2>
-            <p class="stat-label">Músicos Verificados</p>
+            <h2 class="stat-number" id="stat-artists-count">...</h2>
+            <p class="stat-label">Músicos en la Comunidad</p>
           </div>
           <div class="stat-box">
-            <h2 class="stat-number">+850</h2>
-            <p class="stat-label">Contratos al Mes</p>
+            <h2 class="stat-number" id="stat-gigs-count">...</h2>
+            <p class="stat-label">Ofertas de Contratación</p>
           </div>
           <div class="stat-box">
-            <h2 class="stat-number">+120</h2>
-            <p class="stat-label">Eventos este Mes</p>
+            <h2 class="stat-number" id="stat-events-count">...</h2>
+            <p class="stat-label">Eventos Próximos</p>
           </div>
           <div class="stat-box">
-            <h2 class="stat-number">4.9 ★</h2>
-            <p class="stat-label">Calificación Promedio</p>
+            <h2 class="stat-number" id="stat-posts-count">...</h2>
+            <p class="stat-label">Publicaciones en el Feed</p>
           </div>
         </div>
       </section>
@@ -222,20 +241,39 @@ export const HomePage = {
 
     const { artistasDestacados, eventosProximos } = destacadosData;
 
-    // 1. ARTISTAS DESTACADOS (Top 4)
-    const artistasTop = (artistasDestacados || []).slice(0, 4);
+    // 0. MÉTRICAS REALES DESDE LA BASE DE DATOS
+    const elArtistsCount = container.querySelector('#stat-artists-count');
+    const elGigsCount = container.querySelector('#stat-gigs-count');
+    const elEventsCount = container.querySelector('#stat-events-count');
+    const elPostsCount = container.querySelector('#stat-posts-count');
+
+    const allPostsRaw = Array.isArray(postsData) ? postsData : (postsData?.posts || postsData?.publicaciones || []);
+    const countArtistas = (artistasDestacados || []).length;
+    const countOfertas = (ofertasData || []).length;
+    const countEventos = (eventosProximos || []).length;
+    const countPosts = allPostsRaw.length;
+
+    if (elArtistsCount) elArtistsCount.textContent = countArtistas > 0 ? `+${countArtistas}` : '0';
+    if (elGigsCount) elGigsCount.textContent = countOfertas > 0 ? `+${countOfertas}` : '0';
+    if (elEventsCount) elEventsCount.textContent = countEventos > 0 ? `+${countEventos}` : '0';
+    if (elPostsCount) elPostsCount.textContent = countPosts > 0 ? `+${countPosts}` : '0';
+
+    // 1. ARTISTAS DESTACADOS (Top 6)
+    const artistasTop = (artistasDestacados || []).slice(0, 6);
     if (artistasTop.length === 0) {
       artistsContainer.innerHTML = this._emptyState('🎤', 'No hay artistas disponibles', 'Sé el primero en registrarte y crear tu perfil de artista en la plataforma.');
     } else {
       artistsContainer.innerHTML = `
         <div class="artists-grid">
           ${artistasTop.map(artist => {
+            const artistId = artist.idUsuario || artist.id || artist.idArtista || artist.usuarioId || '';
             const avatar = artist.fotoPerfilUrl 
               ? this._formatMediaUrl(artist.fotoPerfilUrl)
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.nombre)}&background=0d6855&color=fff`;
             const infoTag = artist.generoMusical || artist.instrumento || artist.tipoPerfil || 'Músico';
+            const profileNav = artistId ? `#/perfil?id=${artistId}` : `#/perfil`;
             return `
-              <div class="artist-card">
+              <div class="artist-card clickable-card" data-nav="${profileNav}">
                 <div class="artist-avatar-wrap">
                   <img src="${avatar}" alt="${artist.nombre}" class="artist-img" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(artist.nombre)}&background=0d6855&color=fff'" />
                   <span class="status-indicator"></span>
@@ -243,7 +281,7 @@ export const HomePage = {
                 <h3 class="artist-name">${artist.nombre}</h3>
                 <span class="artist-role-badge">🎵 ${infoTag}</span>
                 <p class="artist-location">📍 ${artist.ubicacion || 'Nicaragua'} • ${artist.totalSeguidores || 0} seguidores</p>
-                <button class="btn-card-action protected-action" data-feature="Ver perfil de ${artist.nombre}" data-nav="#/perfil">
+                <button class="btn-card-action protected-action" data-feature="Ver perfil de ${artist.nombre}" data-nav="${profileNav}">
                   Ver Perfil Completo
                 </button>
               </div>
@@ -306,7 +344,7 @@ export const HomePage = {
                   </div>
                 `}
                 <div class="tendencia-info">
-                  <div class="tendencia-author-row">
+                  <div class="tendencia-author-row" style="cursor:pointer;" onclick="event.stopPropagation(); const uid = '${post.autorId || post.idUsuario || post.autor?.idUsuario || post.autor?.id || ''}'; if (uid) window.location.hash='#/perfil?id=' + uid; else window.location.hash='#/perfil';">
                     <img src="${avatar}" class="tendencia-avatar" onerror="this.src='https://ui-avatars.com/api/?name=U&background=0d6855&color=fff'" />
                     <span class="tendencia-author">${post.autorNombre || 'Músico'}</span>
                   </div>
@@ -349,7 +387,7 @@ export const HomePage = {
             const tarifa = gig.tarifaAproximada ? `$${gig.tarifaAproximada} USD` : 'A convenir';
             const mediaList = gig.media || gig.multimedia || [];
             const fotoObj = mediaList.find(m => m.tipo === 'FOTO' || (m.url && m.url.match(/\.(jpg|jpeg|png|webp|gif)$/i)));
-            const gigImg = fotoObj?.url ? this._formatMediaUrl(fotoObj.url) : (gig.fotoPerfilUrl ? this._formatMediaUrl(gig.fotoPerfilUrl) : null);
+            const gigImg = fotoObj?.url ? this._formatMediaUrl(fotoObj.url) : null;
             const avatar = gig.fotoPerfilUrl 
               ? this._formatMediaUrl(gig.fotoPerfilUrl)
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(gig.artistaNombre||'U')}&background=0d6855&color=fff`;
@@ -368,7 +406,7 @@ export const HomePage = {
                   </div>
                 `}
                 <div class="gig-card-body-content">
-                  <div class="gig-card-head">
+                  <div class="gig-card-head" style="cursor:pointer;" onclick="event.stopPropagation(); const aid = '${gig.artistaId || gig.idArtista || gig.idUsuario || ''}'; if (aid) window.location.hash='#/perfil?id=' + aid; else window.location.hash='#/perfil';">
                     <img src="${avatar}" class="gig-avatar-sm" onerror="this.src='https://ui-avatars.com/api/?name=U&background=0d6855&color=fff'" />
                     <div class="gig-org-info">
                       <h4>${gig.artistaNombre || 'Usuario'}</h4>
@@ -425,6 +463,7 @@ export const HomePage = {
             const fotoObj = mediaList.find(m => m.tipo === 'FOTO' || (m.url && m.url.match(/\.(jpg|jpeg|png|webp|gif)$/i)));
             const rawImg = fotoObj?.url || mediaList[0]?.url || ev.fotoPerfilUrl || ev.organizadorFoto || null;
             const imgUrl = rawImg ? this._formatMediaUrl(rawImg) : null;
+            const orgId = ev.idOrganizador || ev.organizadorId || ev.organizador?.idUsuario || ev.organizador?.id || '';
 
             return `
               <div class="event-card clickable-card" data-nav="#/detalle?tipo=evento&id=${id}">
@@ -441,7 +480,9 @@ export const HomePage = {
                 <div class="event-details">
                   <span class="event-badge-tipo">🎟️ ${ev.tipoEvento || 'Evento en vivo'}</span>
                   <h3 class="event-title">${ev.titulo}</h3>
-                  <p class="event-org">Organizado por ${ev.organizadorNombre || 'Misostenido'}</p>
+                  <p class="event-org" style="cursor:pointer;" onclick="event.stopPropagation(); const oid = '${orgId}'; if (oid) window.location.hash='#/perfil?id=' + oid; else window.location.hash='#/perfil';">
+                    👤 Organizado por <span style="font-weight:700; color:#0d6855; text-decoration:underline;">${ev.organizadorNombre || 'Misostenido'}</span>
+                  </p>
                   <div class="event-meta">
                     <span>📍 ${ev.ubicacion || 'Localización por confirmar'}</span>
                   </div>

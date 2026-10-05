@@ -124,6 +124,7 @@ export const authService = {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('profile_banner_bg');
 
     store.setState({
       user: null,
@@ -138,13 +139,22 @@ export const authService = {
    * Verifica si está autenticado
    */
   isAuthenticated() {
-    return !!store.getState().isAuthenticated;
+    if (store.getState().isAuthenticated) return true;
+    const token = localStorage.getItem(TOKEN_KEY);
+    return !!token;
   },
 
   /**
    * Obtiene datos del usuario logueado
    */
   getCurrentUser() {
-    return store.getState().user;
+    const user = store.getState().user;
+    if (user && (user.id || user.idUsuario || user.name)) return user;
+    try {
+      const stored = localStorage.getItem(USER_KEY);
+      return stored ? JSON.parse(stored) : (user || null);
+    } catch {
+      return user || null;
+    }
   }
 };

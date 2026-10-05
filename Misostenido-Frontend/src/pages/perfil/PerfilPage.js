@@ -11,7 +11,7 @@ import { store } from '../../store/store.js';
 export const PerfilPage = {
   _perfilData: null,
   _metaExtendida: null,
-  _activeTab: 'portafolio',
+  _activeTab: 'publicaciones',
   _isOwner: true,
   _targetUserId: null,
   _container: null,
@@ -19,7 +19,15 @@ export const PerfilPage = {
   _eventos: [],
   _ofertas: [],
   _solicitudes: [],
-  _cursos: [],
+
+  formatMediaUrl(url) {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+      return url;
+    }
+    const backendOrigin = api.BASE_URL.replace('/api', '');
+    return `${backendOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+  },
 
   render() {
     const container = document.createElement('div');
@@ -43,6 +51,7 @@ export const PerfilPage = {
 
   async _initProfile(container) {
     const currentUser = authService.getCurrentUser() || {};
+    const isAdmin = currentUser.role && (currentUser.role.toUpperCase().includes('ADMIN'));
 
     // Determinar si estamos viendo un ID específico por query param (e.g. #/perfil?id=3)
     const hash = window.location.hash || '';
@@ -50,12 +59,17 @@ export const PerfilPage = {
     const queryId = params.get('id');
 
     let idUsuario = currentUser.id ? parseInt(currentUser.id, 10) : null;
+    let isSelf = true;
+
     if (queryId && parseInt(queryId, 10)) {
       idUsuario = parseInt(queryId, 10);
-      this._isOwner = currentUser.id ? (parseInt(currentUser.id, 10) === idUsuario) : false;
+      isSelf = currentUser.id ? (parseInt(currentUser.id, 10) === idUsuario) : false;
     } else {
-      this._isOwner = true;
+      isSelf = true;
     }
+
+    // Es dueño si es su propio perfil o si es Administrador del sistema
+    this._isOwner = isSelf || isAdmin;
     this._targetUserId = idUsuario;
 
     // Sin usuario autenticado ni ID en URL
@@ -70,16 +84,17 @@ export const PerfilPage = {
       return;
     }
 
-    // Cargar perfil + publicaciones + eventos + contrataciones + cursos EN PARALELO
-    const [perfil, publicaciones, eventos, ofertas, solicitudes, cursos] = await Promise.all([
-      this._isOwner && authService.isAuthenticated()
+    // Cargar perfil + publicaciones + eventos + contrataciones + media + estado de seguimiento EN PARALELO
+    const [perfil, publicaciones, eventos, ofertas, solicitudes, extraMedia, followStatus] = await Promise.all([
+      isSelf && authService.isAuthenticated()
         ? perfilService.getMiPerfil()
         : perfilService.getPerfil(idUsuario),
       perfilService.getPublicacionesDeUsuario(idUsuario),
       perfilService.getEventosDeUsuario(idUsuario),
       perfilService.getOfertasDeUsuario(idUsuario),
       perfilService.getSolicitudesDeUsuario(idUsuario),
-      perfilService.getCursosDeUsuario(),
+      perfilService.obtenerMedia(idUsuario),
+      !isSelf && authService.isAuthenticated() ? perfilService.esSeguidor(idUsuario) : Promise.resolve(null),
     ]);
 
     // Si el API no devuelve perfil, mostrar error en pantalla
@@ -88,15 +103,22 @@ export const PerfilPage = {
         <div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#64748b">
           <span style="font-size:3rem">😕</span>
           <p style="font-weight:600;font-size:1.1rem">No se pudo cargar el perfil</p>
-          <p style="font-size:0.9rem">Verifica tu conexión o intenta nuevamente más tarde.</p>
-          <button onclick="window.location.reload()" style="margin-top:8px;padding:10px 24px;background:#0d6855;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">Reintentar</button>
+          <p style="font-size:0.9rem">El usuario no existe o no se encuentra disponible actualmente.</p>
+          <button onclick="window.history.back()" style="margin-top:8px;padding:10px 24px;background:#0d6855;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">Volver atrás</button>
         </div>
       `;
       return;
     }
 
-    // Normalizar portafolio
-    if (!perfil.portafolio) perfil.portafolio = [];
+    // Normalizar si es seguido por visitante
+    if (followStatus && (followStatus.esSeguidor || followStatus.siguiendo || followStatus.isFollowing)) {
+      perfil.esSeguidoPorVisitante = true;
+    }
+
+    // Normalizar portafolio (combinar con extraMedia si aplica)
+    if (!perfil.portafolio || perfil.portafolio.length === 0) {
+      perfil.portafolio = Array.isArray(extraMedia) ? extraMedia : [];
+    }
 
     this._perfilData = perfil;
     this._metaExtendida = perfilService.getMetadatosExtendidos(idUsuario);
@@ -104,7 +126,6 @@ export const PerfilPage = {
     this._eventos = eventos || [];
     this._ofertas = ofertas || [];
     this._solicitudes = solicitudes || [];
-    this._cursos = cursos || [];
 
     this._renderProfileView(container);
   },
@@ -225,17 +246,17 @@ export const PerfilPage = {
       <!-- =================== NAVEGACIÓN DE PESTAÑAS =================== -->
       <nav class="perfil-tabs-bar">
         <div class="perfil-tabs-inner">
-          <button class="perfil-tab ${this._activeTab === 'portafolio' ? 'active' : ''}" data-tab="portafolio">
-            Portafolio y Entretenimiento (${(p.portafolio?.length || 0) + (this._cursos?.length || 0)})
-          </button>
           <button class="perfil-tab ${this._activeTab === 'publicaciones' ? 'active' : ''}" data-tab="publicaciones">
-            Publicaciones (${this._publicaciones.length})
+            📝 Publicaciones (${this._publicaciones.length})
+          </button>
+          <button class="perfil-tab ${this._activeTab === 'portafolio' ? 'active' : ''}" data-tab="portafolio">
+            🎸 Portafolio Musical (${p.portafolio?.length || 0})
           </button>
           <button class="perfil-tab ${this._activeTab === 'eventos' ? 'active' : ''}" data-tab="eventos">
-            Eventos (${this._eventos.length})
+            🎟️ Eventos (${this._eventos.length})
           </button>
           <button class="perfil-tab ${this._activeTab === 'contrataciones' ? 'active' : ''}" data-tab="contrataciones">
-            Contrataciones (${this._ofertas.length + this._solicitudes.length})
+            💼 Servicios y Ofertas (${this._ofertas.length + this._solicitudes.length})
           </button>
         </div>
       </nav>
@@ -385,6 +406,15 @@ export const PerfilPage = {
                     <option value="Estelí, Nicaragua" ${ubicacion && ubicacion.includes('Estelí') ? 'selected' : ''}>Estelí, Nicaragua</option>
                     <option value="Chinandega, Nicaragua" ${ubicacion && ubicacion.includes('Chinandega') ? 'selected' : ''}>Chinandega, Nicaragua</option>
                     <option value="Rivas, Nicaragua" ${ubicacion && ubicacion.includes('Rivas') ? 'selected' : ''}>Rivas, Nicaragua</option>
+                    <option value="Carazo, Nicaragua" ${ubicacion && ubicacion.includes('Carazo') ? 'selected' : ''}>Carazo, Nicaragua</option>
+                    <option value="Jinotega, Nicaragua" ${ubicacion && ubicacion.includes('Jinotega') ? 'selected' : ''}>Jinotega, Nicaragua</option>
+                    <option value="Chontales, Nicaragua" ${ubicacion && ubicacion.includes('Chontales') ? 'selected' : ''}>Chontales, Nicaragua</option>
+                    <option value="Boaco, Nicaragua" ${ubicacion && ubicacion.includes('Boaco') ? 'selected' : ''}>Boaco, Nicaragua</option>
+                    <option value="Madriz, Nicaragua" ${ubicacion && ubicacion.includes('Madriz') ? 'selected' : ''}>Madriz, Nicaragua</option>
+                    <option value="Nueva Segovia, Nicaragua" ${ubicacion && ubicacion.includes('Nueva Segovia') ? 'selected' : ''}>Nueva Segovia, Nicaragua</option>
+                    <option value="Río San Juan, Nicaragua" ${ubicacion && ubicacion.includes('Río San Juan') ? 'selected' : ''}>Río San Juan, Nicaragua</option>
+                    <option value="Costa Caribe Norte, Nicaragua" ${ubicacion && ubicacion.includes('Costa Caribe Norte') ? 'selected' : ''}>Costa Caribe Norte, Nicaragua</option>
+                    <option value="Costa Caribe Sur, Nicaragua" ${ubicacion && ubicacion.includes('Costa Caribe Sur') ? 'selected' : ''}>Costa Caribe Sur, Nicaragua</option>
                   </select>
                 </div>
                 <div class="perfil-form-group">
@@ -621,11 +651,10 @@ export const PerfilPage = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // TAB 1: PORTAFOLIO MULTIMEDIA & ENTRETENIMIENTO
+  // TAB 1: PORTAFOLIO MULTIMEDIA
   // ─────────────────────────────────────────────────────────────
   _renderPortafolioTab() {
     const items = this._perfilData.portafolio || [];
-    const cursos = this._cursos || [];
 
     return `
       <div class="perfil-portfolio-header">
@@ -645,24 +674,26 @@ export const PerfilPage = {
         <div class="perfil-empty-state">
           <div class="perfil-empty-icon">🎨</div>
           <div class="perfil-empty-title">Sin contenido en el portafolio</div>
-          <p class="perfil-empty-desc">Sube videos de tus presentaciones (incluyendo YouTube o archivos MP4), audios o fotos a tu portafolio.</p>
+          <p class="perfil-empty-desc">Este artista aún no ha subido fotos, pistas de audio o videos a su portafolio.</p>
           ${this._isOwner ? `<button class="btn-perfil-primary" id="btn-empty-add-media" style="margin:0 auto">+ Subir mi primer trabajo</button>` : ''}
         </div>
       ` : `
         <div class="perfil-portfolio-grid">
           ${items.map(item => {
-            const isVideo = item.tipo === 'VIDEO' || (item.url && (item.url.includes('youtube') || item.url.includes('youtu.be') || item.url.endsWith('.mp4')));
-            const isAudio = item.tipo === 'AUDIO' || (item.url && (item.url.endsWith('.mp3') || item.url.endsWith('.wav')));
+            const rawUrl = item.url || '';
+            const fullUrl = this.formatMediaUrl(rawUrl);
+            const isVideo = item.tipo === 'VIDEO' || (rawUrl && (rawUrl.includes('youtube') || rawUrl.includes('youtu.be') || rawUrl.endsWith('.mp4')));
+            const isAudio = item.tipo === 'AUDIO' || (rawUrl && (rawUrl.endsWith('.mp3') || rawUrl.endsWith('.wav') || rawUrl.endsWith('.ogg') || rawUrl.endsWith('.m4a')));
             const typeBadge = isVideo ? 'VIDEO' : isAudio ? 'AUDIO' : 'FOTO';
 
-            let bgImg = item.thumbnail || item.url;
-            if (item.url) {
-              const ytMatch = item.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            let bgImg = item.thumbnail || fullUrl;
+            if (rawUrl) {
+              const ytMatch = rawUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
               if (ytMatch && ytMatch[1]) {
                 bgImg = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
               }
             }
-            if (!bgImg || bgImg.trim() === '') {
+            if (!bgImg || bgImg.trim() === '' || isAudio) {
               bgImg = isAudio ? 'https://ui-avatars.com/api/?name=Audio&background=0d6855&color=fff' : 'https://ui-avatars.com/api/?name=Media&background=1e293b&color=fff';
             }
 
@@ -672,7 +703,7 @@ export const PerfilPage = {
               <div class="perfil-portfolio-item" 
                    data-id="${item.idContenidoMultimedia || item.id || ''}" 
                    data-tipo="${typeBadge}" 
-                   data-url="${item.url}" 
+                   data-url="${fullUrl}" 
                    data-title="${item.descripcion || 'Trabajo Artístico'}">
                 <img src="${bgImg}" alt="${item.descripcion || 'Trabajo'}" class="perfil-portfolio-img" 
                      onerror="this.src='https://ui-avatars.com/api/?name=Media&background=0d6855&color=fff'" />
@@ -686,68 +717,28 @@ export const PerfilPage = {
           }).join('')}
         </div>
       `}
-
-      ${cursos.length > 0 ? `
-        <div style="margin-top:36px">
-          <div class="perfil-portfolio-header">
-            <div class="perfil-portfolio-title">
-              <span>🎭 Cursos y Entretenimiento Musical</span>
-              <span class="perfil-portfolio-count">${cursos.length} ${cursos.length === 1 ? 'curso disponible' : 'cursos disponibles'}</span>
-            </div>
-            <a href="#/creatividad" class="btn-see-all" style="text-decoration:none">Ver Catálogo Completo →</a>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:16px;margin-top:12px">
-            ${cursos.map(c => `
-              <div class="perfil-card" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-                ${c.imagenUrl ? `
-                  <img src="${c.imagenUrl}" alt="${c.nombreCurso}" style="width:100%;height:140px;object-fit:cover" onerror="this.style.display='none'" />
-                ` : ''}
-                <div style="padding:16px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:6px;background:#ecfdf5;color:#047857;font-weight:600">
-                      ${c.nivel || 'Nivel General'}
-                    </span>
-                    <span style="font-weight:700;color:#0d6855;font-size:0.9rem">
-                      ${c.precio && c.precio > 0 ? `C$ ${Number(c.precio).toLocaleString()}` : 'Gratuito'}
-                    </span>
-                  </div>
-                  <h5 style="margin:0 0 6px;color:#0f2e26;font-size:0.98rem;font-weight:700">${c.nombreCurso}</h5>
-                  ${c.descripcion ? `<p style="margin:0 0 10px;font-size:0.85rem;color:#64748b;line-height:1.4">${c.descripcion}</p>` : ''}
-                  ${c.videoUrl ? `
-                    <button class="btn-perfil-outline perfil-portfolio-item" 
-                            data-tipo="VIDEO" 
-                            data-url="${c.videoUrl}" 
-                            data-title="${c.nombreCurso}"
-                            style="width:100%;justify-content:center;padding:7px;font-size:0.85rem">
-                      ▶ Ver Video Clase
-                    </button>
-                  ` : ''}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
     `;
   },
 
   // ─────────────────────────────────────────────────────────────
-  // TAB 2: PUBLICACIONES DEL USUARIO EN EL FEED
+  // TAB 2: PUBLICACIONES DEL USUARIO EN EL FEED (ESTILO RED SOCIAL)
   // ─────────────────────────────────────────────────────────────
   _renderPublicacionesTab() {
     const posts = this._publicaciones || [];
     const p = this._perfilData;
-    const avatarUrl = p.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.nombre || 'U')}&background=0d6855&color=fff`;
+    const avatarUrl = p.fotoPerfilUrl 
+      ? this.formatMediaUrl(p.fotoPerfilUrl)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.nombre || 'U')}&background=0d6855&color=fff`;
 
     if (posts.length === 0) {
       return `
         <div class="perfil-empty-state">
           <div class="perfil-empty-icon">📝</div>
-          <div class="perfil-empty-title">Sin publicaciones en el feed</div>
-          <p class="perfil-empty-desc">Este usuario no ha compartido publicaciones en el feed comunitario todavía.</p>
+          <div class="perfil-empty-title">Sin publicaciones</div>
+          <p class="perfil-empty-desc">Este artista no ha compartido publicaciones en su muro todavía.</p>
           ${this._isOwner ? `
             <a href="#/feed" class="btn-perfil-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin:0 auto">
-              Ir al Feed a publicar
+              + Crear mi primera publicación
             </a>
           ` : ''}
         </div>
@@ -755,7 +746,7 @@ export const PerfilPage = {
     }
 
     const formatDate = (dateStr) => {
-      if (!dateStr) return '';
+      if (!dateStr) return 'Reciente';
       try {
         const d = new Date(dateStr);
         return d.toLocaleDateString('es-NI', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -768,8 +759,7 @@ export const PerfilPage = {
       <div style="display:flex;flex-direction:column;gap:18px">
         <div class="perfil-portfolio-header">
           <div class="perfil-portfolio-title">
-            <span>📝 Publicaciones en el Feed</span>
-            <span class="perfil-portfolio-count">${posts.length} ${posts.length === 1 ? 'publicación' : 'publicaciones'}</span>
+            <span>📝 Publicaciones (${posts.length})</span>
           </div>
           ${this._isOwner ? `
             <a href="#/feed" class="btn-see-all" style="text-decoration:none">
@@ -779,31 +769,45 @@ export const PerfilPage = {
         </div>
 
         ${posts.map(post => {
-          const authorPhoto = post.autorFoto || avatarUrl;
+          const authorPhoto = post.autorFoto ? this.formatMediaUrl(post.autorFoto) : avatarUrl;
           const authorName = post.autorNombre || p.nombre;
-          const mediaList = post.multimedia || [];
+          const mediaList = post.multimedia || (post.imagenes ? post.imagenes.map(u => ({ tipo: 'FOTO', url: u })) : []);
 
           return `
-            <article class="perfil-post-card" style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+            <article class="perfil-post-card" style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,0.04)">
               <div class="perfil-post-header" style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-                <img src="${authorPhoto}" alt="${authorName}" class="perfil-post-avatar" style="width:44px;height:44px;border-radius:50%;object-fit:cover" onerror="this.src='https://ui-avatars.com/api/?name=U&background=0d6855&color=fff'" />
+                <img src="${authorPhoto}" alt="${authorName}" class="perfil-post-avatar" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0" onerror="this.src='https://ui-avatars.com/api/?name=U&background=0d6855&color=fff'" />
                 <div>
-                  <div class="perfil-post-author" style="font-weight:700;color:#0f2e26;font-size:0.98rem">${authorName}</div>
-                  <div class="perfil-post-date" style="font-size:0.8rem;color:#64748b">${formatDate(post.fechaPublicacion)}</div>
+                  <div class="perfil-post-author" style="font-weight:700;color:#0f2e26;font-size:1rem">${authorName}</div>
+                  <div class="perfil-post-date" style="font-size:0.82rem;color:#64748b">📅 ${formatDate(post.fechaPublicacion)} · 🌍 Público</div>
                 </div>
               </div>
 
               ${post.texto ? `<div class="perfil-post-body" style="font-size:0.95rem;color:#1e293b;line-height:1.6;margin-bottom:14px;white-space:pre-wrap">${post.texto}</div>` : ''}
 
               ${mediaList.length > 0 ? `
-                <div class="perfil-post-media-wrap" style="display:grid;grid-template-columns:${mediaList.length > 1 ? '1fr 1fr' : '1fr'};gap:8px;margin-bottom:14px;border-radius:10px;overflow:hidden">
+                <div class="perfil-post-media-wrap" style="display:grid;grid-template-columns:${mediaList.length > 1 ? 'repeat(auto-fit, minmax(240px, 1fr))' : '1fr'};gap:10px;margin-bottom:14px;border-radius:12px;overflow:hidden">
                   ${mediaList.map(m => {
-                    const isVideo = m.tipo === 'VIDEO' || (m.url && (m.url.includes('youtube') || m.url.includes('youtu.be') || m.url.endsWith('.mp4')));
+                    const fullMediaUrl = this.formatMediaUrl(m.url);
+                    const isAudio = m.tipo === 'AUDIO' || (m.url && m.url.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i));
+                    const isVideo = m.tipo === 'VIDEO' || (m.url && (m.url.includes('youtube') || m.url.includes('youtu.be') || m.url.match(/\.(mp4|webm|mov)$/i)));
                     const ytMatch = m.url ? m.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) : null;
+
+                    if (isAudio) {
+                      const audioTitle = m.descripcion || 'Pista de Audio';
+                      return `
+                        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;grid-column:1/-1">
+                          <div style="font-size:0.88rem;font-weight:700;color:#0f2e26;display:flex;align-items:center;gap:6px">
+                            <span>🎵</span> ${audioTitle}
+                          </div>
+                          <audio controls src="${fullMediaUrl}" style="width:100%;height:38px;border-radius:6px"></audio>
+                        </div>
+                      `;
+                    }
 
                     if (ytMatch && ytMatch[1]) {
                       return `
-                        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background:#000;grid-column:${mediaList.length === 1 ? 'auto' : '1 / -1'}">
+                        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;background:#000;grid-column:${mediaList.length === 1 ? 'auto' : '1 / -1'}">
                           <iframe 
                             style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" 
                             src="https://www.youtube-nocookie.com/embed/${ytMatch[1]}" 
@@ -815,29 +819,37 @@ export const PerfilPage = {
                       `;
                     } else if (isVideo) {
                       return `
-                        <video src="${m.url}" controls playsinline style="width:100%;max-height:360px;border-radius:8px;background:#000"></video>
+                        <video src="${fullMediaUrl}" controls playsinline style="width:100%;max-height:380px;border-radius:10px;background:#000"></video>
                       `;
                     } else {
                       return `
-                        <img src="${m.url}" alt="Post media" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px" onerror="this.style.display='none'" />
+                        <img src="${fullMediaUrl}" alt="Foto publicación" style="width:100%;max-height:420px;object-fit:cover;border-radius:10px;cursor:pointer" onerror="this.style.display='none'" onclick="window.open('${fullMediaUrl}', '_blank')" />
                       `;
                     }
                   }).join('')}
                 </div>
               ` : ''}
 
-              <div class="perfil-post-actions" style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #f1f5f9;color:#64748b;font-size:0.88rem">
-                <div style="display:flex;align-items:center;gap:16px">
-                  <span style="display:flex;align-items:center;gap:4px">
+              <div class="perfil-post-actions" style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid #f1f5f9;color:#64748b;font-size:0.88rem">
+                <div style="display:flex;align-items:center;gap:18px">
+                  <span style="display:flex;align-items:center;gap:5px;font-weight:600;color:#e11d48">
                     ❤️ <strong>${post.totalLikes || 0}</strong> Me gusta
                   </span>
-                  <span style="display:flex;align-items:center;gap:4px">
+                  <span style="display:flex;align-items:center;gap:5px;font-weight:600;color:#0d6855">
                     💬 <strong>${post.totalComentarios || 0}</strong> Comentarios
                   </span>
                 </div>
-                <a href="#/detalle?tipo=post&id=${post.idPublicacion || post.id}" style="color:#0d6855;font-weight:700;text-decoration:none;font-size:0.85rem;display:inline-flex;align-items:center;gap:4px">
-                  Ver detalle →
-                </a>
+                <div style="display:flex;align-items:center;gap:12px">
+                  ${this._isOwner ? `
+                    <button class="btn-delete-profile-post" data-post-id="${post.idPublicacion || post.id}" style="background:transparent;border:none;color:#ef4444;font-size:0.85rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;transition:background 0.2s" title="Eliminar publicación">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      Eliminar
+                    </button>
+                  ` : ''}
+                  <a href="#/detalle?tipo=post&id=${post.idPublicacion || post.id}" style="color:#0d6855;font-weight:700;text-decoration:none;font-size:0.88rem;display:inline-flex;align-items:center;gap:4px">
+                    Ver publicación completa →
+                  </a>
+                </div>
               </div>
             </article>
           `;
@@ -1134,10 +1146,12 @@ export const PerfilPage = {
     const avatarInput = modalEdit?.querySelector('#file-avatar-input');
     const avatarPreview = modalEdit?.querySelector('#edit-avatar-preview');
     let newAvatarUrl = this._perfilData.fotoPerfilUrl;
+    let selectedAvatarFile = null;
 
-    avatarInput?.addEventListener('change', async (e) => {
+    avatarInput?.addEventListener('change', (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      selectedAvatarFile = file;
 
       // Preview local instantáneo
       const reader = new FileReader();
@@ -1145,16 +1159,6 @@ export const PerfilPage = {
         if (avatarPreview) avatarPreview.src = re.target.result;
       };
       reader.readAsDataURL(file);
-
-      // Subir al backend
-      try {
-        const uploadRes = await perfilService.subirArchivo(file, 'perfiles');
-        if (uploadRes && uploadRes.url) {
-          newAvatarUrl = uploadRes.url;
-        }
-      } catch (err) {
-        console.warn('Subiendo fallback para avatar:', err);
-      }
     });
 
     // ── SUBIDA DE FOTO DE PORTADA ───────────────────────────────
@@ -1162,29 +1166,23 @@ export const PerfilPage = {
     const coverPreview = modalEdit?.querySelector('#edit-cover-preview');
     const deleteCoverBtn = modalEdit?.querySelector('#btn-delete-cover');
     let newCoverUrl = this._metaExtendida?.fotoPortadaUrl;
+    let selectedCoverFile = null;
 
-    coverInput?.addEventListener('change', async (e) => {
+    coverInput?.addEventListener('change', (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      selectedCoverFile = file;
 
       const reader = new FileReader();
       reader.onload = (re) => {
         if (coverPreview) coverPreview.src = re.target.result;
       };
       reader.readAsDataURL(file);
-
-      try {
-        const uploadRes = await perfilService.subirArchivo(file, 'portadas');
-        if (uploadRes && uploadRes.url) {
-          newCoverUrl = uploadRes.url;
-        }
-      } catch (err) {
-        console.warn('Subiendo portada fallback:', err);
-      }
     });
 
     deleteCoverBtn?.addEventListener('click', () => {
       newCoverUrl = null;
+      selectedCoverFile = null;
       if (coverPreview) coverPreview.src = '';
     });
 
@@ -1215,39 +1213,62 @@ export const PerfilPage = {
       };
 
       try {
-        // 1. Guardar datos principales en .NET Backend API
+        // Si seleccionó nuevo archivo de foto de perfil, subirlo primero
+        if (selectedAvatarFile) {
+          saveEditBtn.textContent = 'Subiendo foto de perfil...';
+          const upAvatar = await perfilService.subirArchivo(selectedAvatarFile, 'perfiles');
+          if (upAvatar && upAvatar.url) {
+            newAvatarUrl = upAvatar.url;
+          }
+        }
+
+        // Si seleccionó nuevo archivo de portada, subirlo primero
+        if (selectedCoverFile) {
+          saveEditBtn.textContent = 'Subiendo foto de portada...';
+          const upCover = await perfilService.subirArchivo(selectedCoverFile, 'portadas');
+          if (upCover && upCover.url) {
+            newCoverUrl = upCover.url;
+          }
+        }
+
+        saveEditBtn.textContent = 'Actualizando información...';
+
+        const finalAvatarUrl = newAvatarUrl || this._perfilData.fotoPerfilUrl || null;
+        const finalCoverUrl = newCoverUrl || this._metaExtendida?.fotoPortadaUrl || null;
+
+        // 1. Guardar datos principales en .NET Backend API (/api/usuario/me)
         await perfilService.actualizarPerfil({
           nombre,
           biografia,
           ubicacion,
           generoMusical,
           instrumento,
-          fotoPerfilUrl: newAvatarUrl || this._perfilData.fotoPerfilUrl,
+          fotoPerfilUrl: finalAvatarUrl,
         });
 
-        // 2. Guardar metadatos extendidos
+        // 2. Guardar portada y metadatos extendidos por usuario
         perfilService.saveMetadatosExtendidos(this._perfilData.idUsuario, {
-          fotoPortadaUrl: newCoverUrl || this._metaExtendida.fotoPortadaUrl,
+          fotoPortadaUrl: finalCoverUrl,
           experienciaAnios,
           disponibilidad,
           habilidades,
           redesSociales,
         });
 
-        // Actualizar datos locales y re-renderizar
+        // 3. Actualizar datos locales y re-renderizar vista
         this._perfilData.nombre = nombre;
         this._perfilData.biografia = biografia;
         this._perfilData.ubicacion = ubicacion;
         this._perfilData.generoMusical = generoMusical;
         this._perfilData.instrumento = instrumento;
-        if (newAvatarUrl) this._perfilData.fotoPerfilUrl = newAvatarUrl;
+        if (finalAvatarUrl) this._perfilData.fotoPerfilUrl = finalAvatarUrl;
 
         this._metaExtendida = perfilService.getMetadatosExtendidos(this._perfilData.idUsuario);
 
         closeEditModal();
         this._renderProfileView(container);
-        alert('¡Perfil actualizado con éxito!');
       } catch (err) {
+        console.error('Error al guardar perfil:', err);
         alert('Error al guardar el perfil: ' + (err.message || 'Error del servidor'));
       } finally {
         saveEditBtn.disabled = false;
@@ -1272,18 +1293,29 @@ export const PerfilPage = {
         AuthModal.show('Seguir Artista', 'Inicia sesión para seguir a este artista y ver sus publicaciones.');
         return;
       }
-      const res = await perfilService.toggleSeguir(this._targetUserId);
-      if (res.accion === 'SIGUIENDO') {
-        followMainBtn.classList.add('following');
-        followMainBtn.querySelector('span').textContent = 'Siguiendo';
-        this._perfilData.totalSeguidores = (this._perfilData.totalSeguidores || 0) + 1;
-      } else if (res.accion === 'DEJADO_DE_SEGUIR') {
-        followMainBtn.classList.remove('following');
-        followMainBtn.querySelector('span').textContent = 'Seguir';
-        this._perfilData.totalSeguidores = Math.max(0, (this._perfilData.totalSeguidores || 1) - 1);
+      followMainBtn.disabled = true;
+      try {
+        const res = await perfilService.toggleSeguir(this._targetUserId);
+        const isFollowing = res?.accion === 'SIGUIENDO' || res?.seguido === true || res?.isFollowing === true || !followMainBtn.classList.contains('following');
+
+        if (isFollowing) {
+          followMainBtn.classList.add('following');
+          const span = followMainBtn.querySelector('span');
+          if (span) span.textContent = 'Siguiendo';
+          this._perfilData.totalSeguidores = (this._perfilData.totalSeguidores || 0) + 1;
+        } else {
+          followMainBtn.classList.remove('following');
+          const span = followMainBtn.querySelector('span');
+          if (span) span.textContent = 'Seguir';
+          this._perfilData.totalSeguidores = Math.max(0, (this._perfilData.totalSeguidores || 1) - 1);
+        }
+        const statSeg = container.querySelector('#stat-seguidores strong');
+        if (statSeg) statSeg.textContent = this._perfilData.totalSeguidores;
+      } catch (err) {
+        console.error('Error al seguir usuario:', err);
+      } finally {
+        followMainBtn.disabled = false;
       }
-      const statSeg = container.querySelector('#stat-seguidores strong');
-      if (statSeg) statSeg.textContent = this._perfilData.totalSeguidores;
     });
 
     // ── BOTONES DE SEGUIR EN WIDGET "MÚSICOS SIMILARES" ────────
@@ -1474,6 +1506,47 @@ export const PerfilPage = {
 
         modalPlayer.classList.add('open');
         document.body.style.overflow = 'hidden';
+      });
+    });
+
+    // Eliminar publicaciones desde la pestaña de publicaciones del perfil
+    container.querySelectorAll('.btn-delete-profile-post').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const idPost = btn.dataset.postId;
+        const confirmed = window.confirm('¿Estás seguro de que deseas eliminar esta publicación?');
+        if (!confirmed) return;
+
+        const postArticle = btn.closest('.perfil-post-card');
+        try {
+          if (postArticle) {
+            postArticle.style.opacity = '0.4';
+            postArticle.style.pointerEvents = 'none';
+          }
+          await feedService.eliminarPublicacion(idPost);
+          this._publicaciones = (this._publicaciones || []).filter(p => (p.idPublicacion != idPost && p.id != idPost));
+          
+          // Actualizar conteos
+          const statPub = container.querySelector('#stat-publicaciones strong');
+          if (statPub) statPub.textContent = this._publicaciones.length;
+          const tabPubBtn = container.querySelector('.perfil-tab[data-tab="publicaciones"]');
+          if (tabPubBtn) tabPubBtn.textContent = `Publicaciones (${this._publicaciones.length})`;
+
+          if (postArticle) {
+            postArticle.style.transition = 'all 0.35s ease';
+            postArticle.style.transform = 'scale(0.95)';
+            postArticle.style.opacity = '0';
+            setTimeout(() => {
+              postArticle.remove();
+            }, 350);
+          }
+        } catch (err) {
+          if (postArticle) {
+            postArticle.style.opacity = '1';
+            postArticle.style.pointerEvents = '';
+          }
+          alert('Error al eliminar publicación: ' + (err.message || 'Error del servidor'));
+        }
       });
     });
   }

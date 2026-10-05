@@ -56,6 +56,7 @@ export const DetallePage = {
     const user = authService.getCurrentUser() || {};
     const isAuth = authService.isAuthenticated();
     const avatar = data.autorFoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.autorNombre || 'U')}&background=0d6855&color=fff`;
+    const postAuthorId = data.autorId ?? data.idUsuario ?? data.usuarioId ?? data.autor?.idUsuario ?? data.autor?.id;
 
     // Renderizar media
     const mediaHtml = (data.media || []).map(m => {
@@ -78,13 +79,13 @@ export const DetallePage = {
       <div class="detalle-container">
         <button class="btn-detalle-back" id="btn-back">← Volver</button>
         <article class="detalle-card">
-          <div class="detalle-author-row">
+          <a href="${postAuthorId ? `#/perfil?id=${postAuthorId}` : `#/perfil`}" class="detalle-author-row" style="text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:12px;">
             <img src="${avatar}" alt="${data.autorNombre}" class="detalle-avatar" />
             <div>
               <h2 class="detalle-author-name">${data.autorNombre || 'Músico'}</h2>
               <small class="detalle-date">${data.autorTipo || 'Músico'} · ${this._formatDate(data.fechaCreacion)}</small>
             </div>
-          </div>
+          </a>
           ${data.texto ? `<p class="detalle-text">${data.texto}</p>` : ''}
           ${mediaHtml ? `<div class="detalle-media-grid">${mediaHtml}</div>` : ''}
           <div class="detalle-stats">
@@ -117,13 +118,18 @@ export const DetallePage = {
       if (!comentarios || comentarios.length === 0) return '<p class="no-comments">Sé el primero en comentar.</p>';
       return comentarios.map(c => {
         const av = c.autorFoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.autorNombre||'U')}&background=555&color=fff`;
+        const commentAuthorId = c.usuarioId || c.autorId || c.idUsuario;
         return `
           <div class="detalle-comment">
-            <img src="${av}" class="detalle-avatar-sm" />
+            <a href="${commentAuthorId ? `#/perfil?id=${commentAuthorId}` : `#/perfil`}" style="text-decoration:none;">
+              <img src="${av}" class="detalle-avatar-sm" />
+            </a>
             <div class="comment-bubble">
-              <strong>${c.autorNombre || 'Usuario'}</strong>
+              <a href="${commentAuthorId ? `#/perfil?id=${commentAuthorId}` : `#/perfil`}" style="text-decoration:none; color:inherit;">
+                <strong>${c.autorNombre || c.usuarioNombre || 'Usuario'}</strong>
+              </a>
               <p>${c.texto}</p>
-              <small>${this._formatDate(c.fechaCreacion)}</small>
+              <small>${this._formatDate(c.fechaCreacion || c.fecha)}</small>
             </div>
           </div>
         `;
@@ -173,6 +179,7 @@ export const DetallePage = {
 
     const fecha = data.fechaEvento ? new Date(data.fechaEvento) : null;
     const fechaStr = fecha ? fecha.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : 'Fecha por confirmar';
+    const orgId = data.idOrganizador || data.organizadorId || data.organizador?.idUsuario || data.organizador?.id;
     const mediaHtml = (data.multimedia || data.media || []).map(m => {
       if (m.tipo === 'FOTO') return `<img src="${m.url}" alt="${data.titulo}" class="detalle-media-img" />`;
       if (m.tipo === 'VIDEO') return `<video src="${m.url}" controls class="detalle-video"></video>`;
@@ -189,7 +196,7 @@ export const DetallePage = {
             <h1 class="detalle-title">${data.titulo}</h1>
             <p class="detalle-evento-meta">📅 ${fechaStr}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Ubicación por confirmar'}</p>
-            <p class="detalle-evento-meta">👤 Organizado por ${data.organizadorNombre || 'Misostenido'}</p>
+            <p class="detalle-evento-meta">👤 Organizado por <a href="${orgId ? `#/perfil?id=${orgId}` : `#/perfil`}" style="color:#0d6855; font-weight:700; text-decoration:underline;">${data.organizadorNombre || 'Misostenido'}</a></p>
           </div>
           ${data.descripcion ? `<p class="detalle-descripcion">${data.descripcion}</p>` : ''}
           ${data.infoInscripcion ? `<div class="detalle-info-box"><h4>📋 Información de inscripción</h4><p>${data.infoInscripcion}</p></div>` : ''}
@@ -212,6 +219,7 @@ export const DetallePage = {
 
     const tarifa = data.tarifaAproximada ? `$${data.tarifaAproximada} USD` : 'A convenir';
     const isAuth = authService.isAuthenticated();
+    const artId = data.artistaId || data.idArtista || data.idUsuario;
 
     container.innerHTML = `
       <div class="detalle-container">
@@ -224,7 +232,7 @@ export const DetallePage = {
             <p class="detalle-evento-meta">💰 Tarifa: ${tarifa}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Nicaragua'}</p>
             <p class="detalle-evento-meta">🎵 Género: ${data.generoMusical || 'General'}</p>
-            <p class="detalle-evento-meta">👤 Publicado por: ${data.artistaNombre || 'Artista'}</p>
+            <p class="detalle-evento-meta">👤 Publicado por: <a href="${artId ? `#/perfil?id=${artId}` : `#/perfil`}" style="color:#0d6855; font-weight:700; text-decoration:underline;">${data.artistaNombre || 'Artista'}</a></p>
           </div>
           ${data.descripcion ? `<p class="detalle-descripcion">${data.descripcion}</p>` : ''}
           ${isAuth ? `
@@ -252,6 +260,7 @@ export const DetallePage = {
 
     const presupuesto = data.presupuesto ? `$${data.presupuesto} USD` : 'A convenir';
     const isAuth = authService.isAuthenticated();
+    const contId = data.contratanteId || data.idContratante || data.idUsuario;
 
     container.innerHTML = `
       <div class="detalle-container">
@@ -264,7 +273,7 @@ export const DetallePage = {
             <p class="detalle-evento-meta">💰 Presupuesto: ${presupuesto}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Nicaragua'}</p>
             ${data.fechaEvento ? `<p class="detalle-evento-meta">📅 Fecha: ${new Date(data.fechaEvento).toLocaleDateString('es-NI')}</p>` : ''}
-            <p class="detalle-evento-meta">👤 Publicado por: ${data.contratanteNombre || 'Organizador'}</p>
+            <p class="detalle-evento-meta">👤 Publicado por: <a href="${contId ? `#/perfil?id=${contId}` : `#/perfil`}" style="color:#0d6855; font-weight:700; text-decoration:underline;">${data.contratanteNombre || 'Organizador'}</a></p>
           </div>
           ${data.descripcion ? `<p class="detalle-descripcion">${data.descripcion}</p>` : ''}
           ${isAuth ? `
