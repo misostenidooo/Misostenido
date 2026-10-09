@@ -383,24 +383,34 @@ public class ContratacionService : IContratacionService
 
     public async Task<MensajeResponseDto> ResponderPostulacionAsync(int idPostulacion, int idUsuarioReceptor, string nuevoEstado)
     {
+        // Normalizar a los valores aceptados por el CHECK constraint de la BD (PENDIENTE, ACEPTADA, RECHAZADA)
+        string estadoNormalizado = (nuevoEstado ?? string.Empty).Trim().ToUpper() switch
+        {
+            "RECOMENDADA" or "RECOMENDADO" or "VALIDADA" or "VALIDADO" or "APROBADO" or "APROBADA" or "COORDINACION" or "EN_COORDINACION" => "RECOMENDADA",
+            "CONTRATADA" or "CONTRATADO" or "CONCRETADA" or "CONCRETADO" or "ACEPTADA" or "ACEPTADO" => "CONTRATADA",
+            "EN_REVISION" or "REVISION" => "EN_REVISION",
+            "RECHAZADA" or "RECHAZADO" or "CANCELADA" or "CERRADA" or "NO_APTO" => "RECHAZADA",
+            _ => "PENDIENTE"
+        };
+
         await using SqlConnection conn = new(_connectionString);
         await using SqlCommand cmd = new("dbo.sp_Contratacion_ResponderPostulacion", conn);
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.Parameters.AddWithValue("@id_postulacion",      idPostulacion);
         cmd.Parameters.AddWithValue("@id_usuario_receptor", idUsuarioReceptor);
-        cmd.Parameters.AddWithValue("@nuevo_estado",        nuevoEstado);
+        cmd.Parameters.AddWithValue("@nuevo_estado",        estadoNormalizado);
 
         await conn.OpenAsync();
         await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
             string msg = reader.GetString(reader.GetOrdinal("mensaje"));
-            return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? $"Postulación marcada como {nuevoEstado}" : msg };
+            return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? $"Postulación marcada como {estadoNormalizado}" : msg };
         }
         return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
     }
 
-    public async Task<List<PostulacionDto>> ObtenerPostulacionesAsync(int? idOferta, int? idSolicitud, int? idUsuarioEmisor)
+    public async Task<List<PostulacionDto>> ObtenerPostulacionesAsync(int? idOferta, int? idSolicitud, int? idUsuarioEmisor, int? idPropietario = null)
     {
         var lista = new List<PostulacionDto>();
         await using SqlConnection conn = new(_connectionString);
@@ -409,6 +419,7 @@ public class ContratacionService : IContratacionService
         cmd.Parameters.AddWithValue("@id_oferta",         (object?)idOferta        ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@id_solicitud",      (object?)idSolicitud     ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@id_usuario_emisor", (object?)idUsuarioEmisor ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@id_propietario",    (object?)idPropietario   ?? DBNull.Value);
 
         await conn.OpenAsync();
         await using var reader = await cmd.ExecuteReaderAsync();
@@ -477,4 +488,116 @@ public class ContratacionService : IContratacionService
         }
         return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
     }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // CHAT & ACUERDOS DE CONTRATACIÓN
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public async Task<IdMensajeResponseDto> EnviarMensajeAsync(int idPostulacion, int idUsuario, CrearMensajeContratacionDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_Contratacion_EnviarMensaje", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id_postulacion",    idPostulacion);
+        cmd.Parameters.AddWithValue("@id_usuario_emisor", idUsuario);
+        cmd.Parameters.AddWithValue("@contenido",         dto.Contenido);
+        cmd.Parameters.AddWithValue("@tipo_mensaje",      string.IsNullOrWhiteSpace(dto.TipoMensaje) ? "TEXTO" : dto.TipoMensaje);
+        cmd.Parameters.AddWithValue("@archivo_url",       (object?)dto.ArchivoUrl ?? DBNull.Value);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            int id = Convert.ToInt32(reader["id_mensaje"]);
+            string msg = reader.GetString(reader.GetOrdinal("mensaje"));
+            return new IdMensajeResponseDto { Id = id, Exito = id > 0, Mensaje = id > 0 ? "Mensaje enviado exitosamente" : msg };
+        }
+        return new IdMensajeResponseDto { Id = -1, Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
+
+    public async Task<List<MensajeContratacionDto>> ObtenerMensajesAsync(int idPostulacion, int idUsuario)
+    {
+        var lista = new List<MensajeContratacionDto>();
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_Contratacion_ObtenerMensajes", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id_postulacion",    idPostulacion);
+        cmd.Parameters.AddWithValue("@id_usuario_lector", idUsuario);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            lista.Add(new MensajeContratacionDto
+            {
+                IdMensaje        = reader.GetInt32(reader.GetOrdinal("id_mensaje")),
+                IdPostulacion    = reader.GetInt32(reader.GetOrdinal("id_postulacion")),
+                IdUsuarioEmisor  = reader.GetInt32(reader.GetOrdinal("id_usuario_emisor")),
+                EmisorNombre     = reader.GetString(reader.GetOrdinal("emisor_nombre")),
+                EmisorFoto       = reader.IsDBNull(reader.GetOrdinal("emisor_foto")) ? null : reader.GetString(reader.GetOrdinal("emisor_foto")),
+                EmisorRol        = reader.GetString(reader.GetOrdinal("emisor_rol")),
+                Contenido        = reader.GetString(reader.GetOrdinal("contenido")),
+                TipoMensaje      = reader.GetString(reader.GetOrdinal("tipo_mensaje")),
+                ArchivoUrl       = reader.IsDBNull(reader.GetOrdinal("archivo_url")) ? null : reader.GetString(reader.GetOrdinal("archivo_url")),
+                FechaEnvio       = reader.GetDateTime(reader.GetOrdinal("fecha_envio"))
+            });
+        }
+        return lista;
+    }
+
+    public async Task<MensajeResponseDto> GuardarAcuerdoAsync(int idPostulacion, int idUsuario, GuardarAcuerdoDto dto)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_Contratacion_GuardarAcuerdo", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id_postulacion",             idPostulacion);
+        cmd.Parameters.AddWithValue("@id_usuario_actor",          idUsuario);
+        cmd.Parameters.AddWithValue("@honorarios_acordados",      (object?)dto.HonorariosAcordados ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@fecha_compromiso",          (object?)dto.FechaCompromiso ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@clausulas_especiales",      (object?)dto.ClausulasEspeciales ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@firma_digital_contratante", (object?)dto.FirmaDigitalContratante ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@firma_digital_artista",     (object?)dto.FirmaDigitalArtista ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@estado_acuerdo",            string.IsNullOrWhiteSpace(dto.EstadoAcuerdo) ? "BORRADOR" : dto.EstadoAcuerdo);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            string msg = reader.GetString(reader.GetOrdinal("mensaje"));
+            return new MensajeResponseDto { Exito = msg == "OK", Mensaje = msg == "OK" ? "Acuerdo actualizado correctamente" : msg };
+        }
+        return new MensajeResponseDto { Exito = false, Mensaje = "Sin respuesta del servidor" };
+    }
+
+    public async Task<AcuerdoContratacionDto?> ObtenerAcuerdoAsync(int idPostulacion, int idUsuario)
+    {
+        await using SqlConnection conn = new(_connectionString);
+        await using SqlCommand cmd = new("dbo.sp_Contratacion_ObtenerAcuerdo", conn);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@id_postulacion",    idPostulacion);
+        cmd.Parameters.AddWithValue("@id_usuario_lector", idUsuario);
+
+        await conn.OpenAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new AcuerdoContratacionDto
+            {
+                IdAcuerdo                = reader.GetInt32(reader.GetOrdinal("id_acuerdo")),
+                IdPostulacion            = reader.GetInt32(reader.GetOrdinal("id_postulacion")),
+                HonorariosAcordados      = reader.IsDBNull(reader.GetOrdinal("honorarios_acordados")) ? null : reader.GetDecimal(reader.GetOrdinal("honorarios_acordados")),
+                FechaCompromiso          = reader.IsDBNull(reader.GetOrdinal("fecha_compromiso")) ? null : reader.GetDateTime(reader.GetOrdinal("fecha_compromiso")),
+                ClausulasEspeciales      = reader.IsDBNull(reader.GetOrdinal("clausulas_especiales")) ? null : reader.GetString(reader.GetOrdinal("clausulas_especiales")),
+                FirmaDigitalContratante  = reader.IsDBNull(reader.GetOrdinal("firma_digital_contratante")) ? null : reader.GetString(reader.GetOrdinal("firma_digital_contratante")),
+                FechaFirmaContratante    = reader.IsDBNull(reader.GetOrdinal("fecha_firma_contratante")) ? null : reader.GetDateTime(reader.GetOrdinal("fecha_firma_contratante")),
+                FirmaDigitalArtista      = reader.IsDBNull(reader.GetOrdinal("firma_digital_artista")) ? null : reader.GetString(reader.GetOrdinal("firma_digital_artista")),
+                FechaFirmaArtista        = reader.IsDBNull(reader.GetOrdinal("fecha_firma_artista")) ? null : reader.GetDateTime(reader.GetOrdinal("fecha_firma_artista")),
+                EstadoAcuerdo            = reader.GetString(reader.GetOrdinal("estado_acuerdo")),
+                FechaCreacion            = reader.GetDateTime(reader.GetOrdinal("fecha_creacion")),
+                FechaActualizacion       = reader.IsDBNull(reader.GetOrdinal("fecha_actualizacion")) ? null : reader.GetDateTime(reader.GetOrdinal("fecha_actualizacion"))
+            };
+        }
+        return null;
+    }
 }
+

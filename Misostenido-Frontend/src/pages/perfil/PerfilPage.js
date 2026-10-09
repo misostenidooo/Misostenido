@@ -51,6 +51,7 @@ export const PerfilPage = {
 
   async _initProfile(container) {
     const currentUser = authService.getCurrentUser() || {};
+    const myId = Number(currentUser.id || currentUser.idUsuario || currentUser.userId) || null;
     const isAdmin = currentUser.role && (currentUser.role.toUpperCase().includes('ADMIN'));
 
     // Determinar si estamos viendo un ID específico por query param (e.g. #/perfil?id=3)
@@ -58,14 +59,15 @@ export const PerfilPage = {
     const params = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
     const queryId = params.get('id');
 
-    let idUsuario = currentUser.id ? parseInt(currentUser.id, 10) : null;
+    let idUsuario = myId;
     let isSelf = true;
 
     if (queryId && parseInt(queryId, 10)) {
       idUsuario = parseInt(queryId, 10);
-      isSelf = currentUser.id ? (parseInt(currentUser.id, 10) === idUsuario) : false;
+      isSelf = myId ? (myId === idUsuario) : false;
     } else {
       isSelf = true;
+      idUsuario = myId;
     }
 
     // Es dueño si es su propio perfil o si es Administrador del sistema
@@ -217,26 +219,26 @@ export const PerfilPage = {
           <!-- BOTONES DE ACCIÓN SUPERIOR -->
           <div class="perfil-actions">
             ${this._isOwner ? `
-              <button class="btn-perfil-primary" id="btn-open-edit-profile">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Editar
+              <button class="btn-perfil-primary" id="btn-open-edit-profile" style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 9.png" alt="Editar" class="ms-icon ms-icon-xs" />
+                <span>Editar</span>
               </button>
-              <button class="btn-perfil-outline" id="btn-quick-portfolio">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                Portafolio
+              <button class="btn-perfil-outline" id="btn-quick-portfolio" style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 1.png" alt="Portafolio" class="ms-icon ms-icon-xs" />
+                <span>Portafolio</span>
               </button>
-              <button class="btn-perfil-outline" id="btn-quick-events">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Eventos
+              <button class="btn-perfil-outline" id="btn-quick-events" style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 6.png" alt="Eventos" class="ms-icon ms-icon-xs" />
+                <span>Eventos</span>
               </button>
             ` : `
               <button class="btn-perfil-primary ${p.esSeguidoPorVisitante ? 'following' : ''}" id="btn-toggle-follow-main">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 <span>${p.esSeguidoPorVisitante ? 'Siguiendo' : 'Seguir'}</span>
               </button>
-              <button class="btn-perfil-outline" id="btn-contact-artist">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Contratar / Mensaje
+              <button class="btn-perfil-outline" id="btn-contact-artist" style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 5.png" alt="Contratar" class="ms-icon ms-icon-xs" />
+                <span>Contratar / Mensaje</span>
               </button>
             `}
           </div>
@@ -246,17 +248,21 @@ export const PerfilPage = {
       <!-- =================== NAVEGACIÓN DE PESTAÑAS =================== -->
       <nav class="perfil-tabs-bar">
         <div class="perfil-tabs-inner">
-          <button class="perfil-tab ${this._activeTab === 'publicaciones' ? 'active' : ''}" data-tab="publicaciones">
-            📝 Publicaciones (${this._publicaciones.length})
+          <button class="perfil-tab ${this._activeTab === 'publicaciones' ? 'active' : ''}" data-tab="publicaciones" style="display:inline-flex;align-items:center;gap:6px;">
+            <img src="src/assets/images/ICONO 2.png" alt="Publicaciones" class="ms-icon ms-icon-xs" />
+            <span>Publicaciones (${this._publicaciones.length})</span>
           </button>
-          <button class="perfil-tab ${this._activeTab === 'portafolio' ? 'active' : ''}" data-tab="portafolio">
-            🎸 Portafolio Musical (${p.portafolio?.length || 0})
+          <button class="perfil-tab ${this._activeTab === 'portafolio' ? 'active' : ''}" data-tab="portafolio" style="display:inline-flex;align-items:center;gap:6px;">
+            <img src="src/assets/images/ICONO 1.png" alt="Portafolio" class="ms-icon ms-icon-xs" />
+            <span>Portafolio Musical (${p.portafolio?.length || 0})</span>
           </button>
-          <button class="perfil-tab ${this._activeTab === 'eventos' ? 'active' : ''}" data-tab="eventos">
-            🎟️ Eventos (${this._eventos.length})
+          <button class="perfil-tab ${this._activeTab === 'eventos' ? 'active' : ''}" data-tab="eventos" style="display:inline-flex;align-items:center;gap:6px;">
+            <img src="src/assets/images/ICONO 6.png" alt="Eventos" class="ms-icon ms-icon-xs" />
+            <span>Eventos (${this._eventos.length})</span>
           </button>
-          <button class="perfil-tab ${this._activeTab === 'contrataciones' ? 'active' : ''}" data-tab="contrataciones">
-            💼 Servicios y Ofertas (${this._ofertas.length + this._solicitudes.length})
+          <button class="perfil-tab ${this._activeTab === 'contrataciones' ? 'active' : ''}" data-tab="contrataciones" style="display:inline-flex;align-items:center;gap:6px;">
+            <img src="src/assets/images/ICONO 5.png" alt="Servicios" class="ms-icon ms-icon-xs" />
+            <span>Servicios y Ofertas (${this._ofertas.length + this._solicitudes.length})</span>
           </button>
         </div>
       </nav>
@@ -270,7 +276,10 @@ export const PerfilPage = {
           <!-- WIDGET 1: INFORMACIÓN BÁSICA -->
           <div class="perfil-card">
             <div class="perfil-card-header">
-              <span class="perfil-card-title">Información Básica 📋</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 9.png" alt="Info" class="ms-icon ms-icon-xs" />
+                <span class="perfil-card-title">Información Básica</span>
+              </div>
             </div>
             <div class="perfil-card-body">
               <div class="perfil-info-item">
@@ -320,7 +329,10 @@ export const PerfilPage = {
           <!-- WIDGET 2: HABILIDADES DESTACADAS -->
           <div class="perfil-card">
             <div class="perfil-card-header">
-              <span class="perfil-card-title">Habilidades destacadas 💪</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 4.png" alt="Habilidades" class="ms-icon ms-icon-xs" />
+                <span class="perfil-card-title">Habilidades destacadas</span>
+              </div>
             </div>
             <div class="perfil-card-body">
               <div class="perfil-tags">
@@ -334,7 +346,10 @@ export const PerfilPage = {
           <!-- WIDGET 3: MÚSICOS SIMILARES EN NICARAGUA -->
           <div class="perfil-card">
             <div class="perfil-card-header">
-              <span class="perfil-card-title">Músicos similares 👥</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 3.png" alt="Comunidad" class="ms-icon ms-icon-xs" />
+                <span class="perfil-card-title">Músicos similares</span>
+              </div>
               <a href="#/feed" style="font-size:0.78rem;color:#0d6855;font-weight:700;text-decoration:none">Ver todos</a>
             </div>
             <div class="perfil-card-body">

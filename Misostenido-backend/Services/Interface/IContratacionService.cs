@@ -23,9 +23,16 @@ public interface IContratacionService
     // ── Postulaciones ─────────────────────────────────────────────────────────
     Task<IdMensajeResponseDto> CrearPostulacionAsync(int idUsuarioEmisor, CrearPostulacionDto dto);
     Task<MensajeResponseDto> ResponderPostulacionAsync(int idPostulacion, int idUsuarioReceptor, string nuevoEstado);
-    Task<List<PostulacionDto>> ObtenerPostulacionesAsync(int? idOferta, int? idSolicitud, int? idUsuarioEmisor);
+    Task<List<PostulacionDto>> ObtenerPostulacionesAsync(int? idOferta, int? idSolicitud, int? idUsuarioEmisor, int? idPropietario = null);
 
     // ── Multimedia ────────────────────────────────────────────────────────────
     Task<IdMensajeResponseDto> AgregarMediaAsync(int idUsuario, AgregarContratacionMediaDto dto);
     Task<MensajeResponseDto> EliminarMediaAsync(int idContratacionMultimedia, int idUsuario);
+
+    // ── Chat & Acuerdos de Contratación ──────────────────────────────────────
+    Task<IdMensajeResponseDto> EnviarMensajeAsync(int idPostulacion, int idUsuario, CrearMensajeContratacionDto dto);
+    Task<List<MensajeContratacionDto>> ObtenerMensajesAsync(int idPostulacion, int idUsuario);
+    Task<MensajeResponseDto> GuardarAcuerdoAsync(int idPostulacion, int idUsuario, GuardarAcuerdoDto dto);
+    Task<AcuerdoContratacionDto?> ObtenerAcuerdoAsync(int idPostulacion, int idUsuario);
 }
+

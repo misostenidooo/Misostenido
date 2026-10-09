@@ -156,5 +156,9 @@ export const authService = {
     } catch {
       return user || null;
     }
+  },
+
+  getUser() {
+    return this.getCurrentUser();
   }
 };

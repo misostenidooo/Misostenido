@@ -28,32 +28,41 @@ export const Footer = {
 
             <!-- Columna Para Músicos -->
             <div class="footer-col">
-              <h4 class="footer-heading">Para Músicos</h4>
+              <h4 class="footer-heading" style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 1.png" alt="Músicos" class="ms-icon ms-icon-xs" />
+                <span>Para Músicos</span>
+              </h4>
               <ul class="footer-links">
                 <li><a href="#/">Crear Perfil</a></li>
-                <li><a href="#/">Explorar Contrataciones</a></li>
-                <li><a href="#/">Eventos</a></li>
-                <li><a href="#/">Precios</a></li>
+                <li><a href="#/contrataciones">Explorar Contrataciones</a></li>
+                <li><a href="#/eventos">Eventos</a></li>
+                <li><a href="#/creatividad">Cursos y Tiendas</a></li>
               </ul>
             </div>
 
             <!-- Columna Para Contratistas -->
             <div class="footer-col">
-              <h4 class="footer-heading">Para Contratistas</h4>
+              <h4 class="footer-heading" style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 5.png" alt="Contratistas" class="ms-icon ms-icon-xs" />
+                <span>Para Contratistas</span>
+              </h4>
               <ul class="footer-links">
-                <li><a href="#/">Publicar Trabajo</a></li>
-                <li><a href="#/">Buscar Músicos</a></li>
-                <li><a href="#/">Garantía de Pago</a></li>
+                <li><a href="#/contrataciones">Publicar Trabajo</a></li>
+                <li><a href="#/feed">Buscar Músicos</a></li>
+                <li><a href="#/contrataciones">Intermediación y Garantía</a></li>
                 <li><a href="#/">Casos de Éxito</a></li>
               </ul>
             </div>
 
             <!-- Columna Soporte y Legal -->
             <div class="footer-col">
-              <h4 class="footer-heading">Soporte y Legal</h4>
+              <h4 class="footer-heading" style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 9.png" alt="Soporte" class="ms-icon ms-icon-xs" />
+                <span>Soporte y Legal</span>
+              </h4>
               <ul class="footer-links">
-                <li><a href="#/">Soporte</a></li>
-                <li><a href="#/">Términos de Servicio</a></li>
+                <li><a href="#/">Centro de Ayuda</a></li>
+                <li><a href="#/">Normativa de Intermediación</a></li>
                 <li><a href="#/">Privacidad</a></li>
                 <li><a href="#/">Contacto</a></li>
               </ul>

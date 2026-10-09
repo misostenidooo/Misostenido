@@ -4,6 +4,7 @@
  */
 import { api } from './api.js';
 import { store } from '../store/store.js';
+import { storageService } from './storageService.js';
 
 export const perfilService = {
   /**
@@ -205,8 +206,15 @@ export const perfilService = {
    */
   getSeguidosIds() {
     try {
-      const stored = localStorage.getItem('misostenido_seguidos');
-      return stored ? JSON.parse(stored) : [];
+      const user = JSON.parse(localStorage.getItem('misostenido_user') || '{}');
+      const myId = Number(user.id || user.idUsuario || user.userId);
+      if (!myId) return [];
+
+      const key = 'misostenido_seguidos_' + myId;
+      const stored = localStorage.getItem(key);
+      let list = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(list)) list = [];
+      return list.map(Number).filter(id => id && id !== myId);
     } catch (e) {
       return [];
     }
@@ -217,15 +225,20 @@ export const perfilService = {
    */
   guardarSeguidoLocal(idUsuario, isFollowing) {
     try {
+      const user = JSON.parse(localStorage.getItem('misostenido_user') || '{}');
+      const myId = Number(user.id || user.idUsuario || user.userId);
+      const idNum = Number(idUsuario);
+      if (!myId || !idNum || idNum === myId) return;
+
       let list = this.getSeguidosIds();
-      const idNum = parseInt(idUsuario, 10);
-      if (isNaN(idNum)) return;
       if (isFollowing) {
         if (!list.includes(idNum)) list.push(idNum);
       } else {
         list = list.filter(id => id !== idNum);
       }
-      localStorage.setItem('misostenido_seguidos', JSON.stringify(list));
+      const key = 'misostenido_seguidos_' + myId;
+      localStorage.setItem(key, JSON.stringify(list));
+      localStorage.removeItem('misostenido_seguidos');
     } catch (e) {}
   },
 
@@ -234,9 +247,15 @@ export const perfilService = {
    * @param {number} idUsuario
    */
   async toggleSeguir(idUsuario) {
-    const idNum = parseInt(idUsuario, 10);
+    const user = JSON.parse(localStorage.getItem('misostenido_user') || '{}');
+    const myId = Number(user.id || user.idUsuario || user.userId);
+    const idNum = Number(idUsuario);
+    if (!idNum || idNum === myId) {
+      return { accion: 'ERROR', mensaje: 'No puedes seguirte a ti mismo' };
+    }
+
     try {
-      const res = await api.post(`/social/seguir/${idUsuario}`, {});
+      const res = await api.post('/social/seguir/' + idUsuario, {});
       const isFollowing = res?.accion === 'SIGUIENDO' || res?.seguido === true || res?.isFollowing === true;
       const isUnfollowing = res?.accion === 'DEJADO_DE_SEGUIR' || res?.seguido === false;
 
@@ -263,14 +282,20 @@ export const perfilService = {
    * @param {number} idUsuario
    */
   async esSeguidor(idUsuario) {
-    const idNum = parseInt(idUsuario, 10);
+    const user = JSON.parse(localStorage.getItem('misostenido_user') || '{}');
+    const myId = Number(user.id || user.idUsuario || user.userId);
+    const idNum = Number(idUsuario);
+    if (!idNum || idNum === myId) {
+      return { esSeguidor: false, siguiendo: false };
+    }
+
     const localSeguidos = this.getSeguidosIds();
     if (localSeguidos.includes(idNum)) {
       return { esSeguidor: true };
     }
 
     try {
-      const res = await api.get(`/social/es-seguidor/${idUsuario}`);
+      const res = await api.get('/social/es-seguidor/' + idUsuario);
       if (res && (res.esSeguidor || res.siguiendo)) {
         this.guardarSeguidoLocal(idNum, true);
       }
@@ -281,13 +306,12 @@ export const perfilService = {
   },
 
   /**
-   * Sube una imagen o archivo multimedia al servidor local
+   * Sube un archivo de perfil, portada o contenido multimedia
    * @param {File} file
-   * @param {string} carpeta
+   * @param {string} [carpeta]
    */
   async subirArchivo(file, carpeta = 'perfiles') {
-    const { storageService } = await import('./storageService.js');
-    return await storageService.uploadFile(file);
+    return await storageService.uploadFile(file, carpeta);
   },
 
   /**

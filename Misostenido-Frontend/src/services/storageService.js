@@ -23,7 +23,7 @@ export const storageService = {
    * @param {File} file 
    * @returns {Promise<{ url: string, tipo: 'FOTO' | 'VIDEO' | 'AUDIO', nombreOriginal?: string }>}
    */
-  async uploadFile(file) {
+  async uploadFile(file, carpeta = 'perfiles') {
     const isVideo = file.type.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|mkv|avi)$/i);
     const isAudio = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i);
     const tipo = isVideo ? 'VIDEO' : (isAudio ? 'AUDIO' : 'FOTO');
@@ -31,7 +31,7 @@ export const storageService = {
     // 1. Si Supabase está configurado, sube cualquier formato a Supabase Storage
     if (this.SUPABASE_URL && this.SUPABASE_ANON_KEY) {
       try {
-        const res = await this.uploadToSupabase(file, tipo);
+        const res = await this.uploadToSupabase(file, tipo, carpeta);
         return { url: res.url, tipo };
       } catch (err) {
         console.warn('[storageService] Error en Supabase, intentando fallback:', err.message);
@@ -50,7 +50,7 @@ export const storageService = {
 
     // 3. Fallback garantizado: Backend Local (.NET /api/Upload)
     // Funciona para AUDIO, VIDEO y FOTOS sin ninguna tarjeta ni servicio externo
-    return await this.uploadToLocalBackend(file, tipo);
+    return await this.uploadToLocalBackend(file, tipo, carpeta);
   },
 
   /**
@@ -79,8 +79,8 @@ export const storageService = {
   /**
    * Sube Audios, Videos o Fotos a Supabase Storage (1GB gratis, sin tarjeta)
    */
-  async uploadToSupabase(file, tipo) {
-    const carpeta = tipo.toLowerCase();
+  async uploadToSupabase(file, tipo, carpetaEspecifica = null) {
+    const carpeta = carpetaEspecifica || tipo.toLowerCase();
     const ext = file.name.split('.').pop()?.toLowerCase() || 'dat';
     const fileName = `${carpeta}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
@@ -123,11 +123,11 @@ export const storageService = {
    * Sube Audio, Video o Foto al backend propio de Misostenido (/api/Upload)
    * Guarda en wwwroot/uploads/ y genera el link automáticamente
    */
-  async uploadToLocalBackend(file, tipo) {
+  async uploadToLocalBackend(file, tipo, carpeta = 'archivos') {
     const formData = new FormData();
     formData.append('archivos', file);
 
-    const res = await api.upload('/Upload', formData);
+    const res = await api.upload(`/Upload?carpeta=${encodeURIComponent(carpeta)}`, formData);
     if (res && res.archivos && res.archivos.length > 0) {
       return {
         url: res.archivos[0].url,

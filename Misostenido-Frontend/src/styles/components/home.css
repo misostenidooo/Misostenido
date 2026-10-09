@@ -760,6 +760,53 @@
   .stats-container { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (max-width: 768px) {
+  .hero-section { padding: 48px 16px 60px; }
+  .hero-main-title { font-size: 1.9rem; }
+  .hero-sub-title { font-size: 0.92rem; margin-bottom: 24px; }
+  .search-filter-bar {
+    flex-direction: column;
+    border-radius: 18px;
+    padding: 10px;
+    gap: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  }
+  .filter-input-col {
+    width: 100%;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+  }
+  .filter-divider { display: none; }
+  .btn-search-submit {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .hero-trending-tags {
+    font-size: 0.82rem;
+    gap: 6px;
+  }
+  .artists-grid { grid-template-columns: 1fr; }
+  .stats-container { grid-template-columns: 1fr; gap: 14px; }
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-main-title { font-size: 1.55rem; }
+  .hero-pill-tag { font-size: 0.72rem; padding: 4px 12px; }
+}
+
 /* ================= CLICKABLE CARDS ================= */
 .clickable-card {
   cursor: pointer;
@@ -798,7 +845,7 @@
   width: 100%;
   aspect-ratio: 16/9;
   overflow: hidden;
-  background: #1a2f27;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -818,27 +865,34 @@
   right: 10px;
 }
 .tendencia-likes-badge {
-  background: rgba(0,0,0,0.65);
+  background: rgba(15, 46, 38, 0.75);
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 20px;
+  backdrop-filter: blur(4px);
 }
-.tendencia-video-thumb { background: linear-gradient(135deg, #1a1a2e, #16213e); }
-.tendencia-audio-thumb { background: linear-gradient(135deg, #0d2820, #0d6855); }
-.tendencia-text-thumb  { background: linear-gradient(135deg, #1a2f27, #0d2820); padding: 16px; }
+.tendencia-video-thumb { background: linear-gradient(135deg, #e0f2fe, #dbeafe); color: #0369a1; }
+.tendencia-audio-thumb { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #047857; }
+.tendencia-text-thumb  {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e6f4f1 100%);
+  padding: 20px 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
 .tendencia-play-icon   { font-size: 2.5rem; }
 .tendencia-tipo-badge  {
   position: absolute; bottom: 8px; left: 10px;
-  background: rgba(255,255,255,0.15); color: #fff;
-  font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
+  background: rgba(13, 104, 85, 0.88); color: #fff;
+  font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
 }
 .tendencia-text-preview {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.85rem;
-  font-style: italic;
+  color: #0f2e26;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-style: normal;
   line-height: 1.5;
+  text-align: center;
 }
 
 .tendencia-info { padding: 14px 16px; }

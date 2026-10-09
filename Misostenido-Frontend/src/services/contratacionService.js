@@ -155,7 +155,7 @@ export const contratacionService = {
   },
 
   /**
-   * Envía una propuesta o solicitud de contratación directamente al artista o contratante
+   * Envía una propuesta o solicitud de contratación canalizada por gestor
    */
   async solicitarContratacion({ idOferta = null, idSolicitud = null, mensaje }) {
     if (!authService.isAuthenticated()) {
@@ -165,7 +165,130 @@ export const contratacionService = {
     return await api.post('/Contratacion/postulaciones', {
       IdOferta: idOferta ? parseInt(idOferta, 10) : null,
       IdSolicitud: idSolicitud ? parseInt(idSolicitud, 10) : null,
-      Mensaje: mensaje ? mensaje.trim() : 'Hola, estoy interesado en tu propuesta musical.'
+      Mensaje: mensaje ? mensaje.trim() : 'Hola, solicito intermediación para propuesta musical.'
     });
+  },
+
+  /**
+   * Obtiene las solicitudes de intermediación / postulaciones activas
+   */
+  async getPostulaciones({ idOferta = null, idSolicitud = null, idEmisor = null } = {}) {
+    if (!authService.isAuthenticated()) return [];
+    try {
+      const q = new URLSearchParams();
+      if (idOferta) q.append('idOferta', idOferta);
+      if (idSolicitud) q.append('idSolicitud', idSolicitud);
+      if (idEmisor) q.append('idEmisor', idEmisor);
+      const queryStr = q.toString();
+      const url = `/Contratacion/postulaciones${queryStr ? `?${queryStr}` : ''}`;
+      const data = await api.get(url);
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.warn('[contratacionService] Error al obtener postulaciones:', err.message);
+      return [];
+    }
+  },
+
+  /**
+   * Actualiza el estado de la solicitud en el proceso de intermediación
+   * Estados: EN_REVISION | COORDINACION | CONCRETADA | RECHAZADA | CERRADA | CANCELADA
+   */
+  async actualizarEstadoPostulacion(idPostulacion, nuevoEstado) {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Debes iniciar sesión para gestionar la solicitud.');
+    }
+    return await api.put(`/Contratacion/postulaciones/${idPostulacion}/responder`, {
+      NuevoEstado: nuevoEstado
+    });
+  },
+
+  /**
+   * Envía un reporte formal sobre una oferta o solicitud que incumpla la normativa
+   */
+  async reportarPublicacion({ tipo, idRegistro, motivo, descripcion }) {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Debes iniciar sesión para enviar un reporte.');
+    }
+    return await api.post('/Admin/reportes', {
+      TipoContenido: tipo,
+      IdRegistro: parseInt(idRegistro, 10),
+      Motivo: motivo,
+      Descripcion: descripcion
+    });
+  },
+
+  /**
+   * Obtiene todos los mensajes en tiempo real de una postulación
+   */
+  async getMensajes(idPostulacion) {
+    if (!authService.isAuthenticated()) return [];
+    try {
+      const data = await api.get(`/Contratacion/postulaciones/${idPostulacion}/mensajes`);
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.warn(`[contratacionService] Error al obtener mensajes para postulación ${idPostulacion}:`, err.message);
+      return [];
+    }
+  },
+
+  /**
+   * Envía un mensaje real al chat de negociación de la postulación
+   */
+  async enviarMensaje({ idPostulacion, contenido, tipoMensaje = 'TEXTO', archivoUrl = null }) {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Debes iniciar sesión para enviar mensajes.');
+    }
+    return await api.post(`/Contratacion/postulaciones/${idPostulacion}/mensajes`, {
+      Contenido: contenido.trim(),
+      TipoMensaje: tipoMensaje,
+      ArchivoUrl: archivoUrl
+    });
+  },
+
+  /**
+   * Obtiene los datos del acuerdo o pre-contrato digital de una postulación
+   */
+  async getAcuerdo(idPostulacion) {
+    if (!authService.isAuthenticated()) return null;
+    try {
+      return await api.get(`/Contratacion/postulaciones/${idPostulacion}/acuerdo`);
+    } catch (err) {
+      console.warn(`[contratacionService] Error al obtener acuerdo para postulación ${idPostulacion}:`, err.message);
+      return null;
+    }
+  },
+
+  /**
+   * Guarda o actualiza el acuerdo digital y firmas de la postulación
+   */
+  async guardarAcuerdo(idPostulacion, { honorariosAcordados, fechaCompromiso, clausulasEspeciales, firmaDigitalContratante, firmaDigitalArtista, estadoAcuerdo = 'BORRADOR' }) {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Debes iniciar sesión para formalizar acuerdos.');
+    }
+    return await api.put(`/Contratacion/postulaciones/${idPostulacion}/acuerdo`, {
+      HonorariosAcordados: honorariosAcordados ? parseFloat(honorariosAcordados) : null,
+      FechaCompromiso: fechaCompromiso ? new Date(fechaCompromiso).toISOString() : null,
+      ClausulasEspeciales: clausulasEspeciales ? clausulasEspeciales.trim() : null,
+      FirmaDigitalContratante: firmaDigitalContratante ? firmaDigitalContratante.trim() : null,
+      FirmaDigitalArtista: firmaDigitalArtista ? firmaDigitalArtista.trim() : null,
+      EstadoAcuerdo: estadoAcuerdo
+    });
+  },
+
+  /**
+   * Cambia el estado de una solicitud (ej. abierta o cerrada/asignada)
+   */
+  async cambiarEstadoSolicitud(idSolicitud, abierta) {
+    if (!authService.isAuthenticated()) return null;
+    return await api.put(`/Contratacion/solicitudes/${idSolicitud}/estado`, { Abierta: abierta });
+  },
+
+  /**
+   * Cambia el estado de una oferta (ej. disponible o pausada)
+   */
+  async cambiarEstadoOferta(idOferta, disponible) {
+    if (!authService.isAuthenticated()) return null;
+    return await api.put(`/Contratacion/ofertas/${idOferta}/estado`, { Disponible: disponible });
   }
 };
+

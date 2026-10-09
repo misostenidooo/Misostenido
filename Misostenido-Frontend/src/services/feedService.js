@@ -85,7 +85,7 @@ export const feedService = {
     };
 
     const resPost = await api.post('/Feed/posts', payload);
-    const idPost = resPost?.idPublicacion || resPost?.id || resPost?.data?.idPublicacion;
+    const idPost = resPost?.id || resPost?.Id || resPost?.idPublicacion || resPost?.IdPublicacion || resPost?.id_publicacion || resPost?.data?.id || resPost?.data?.Id || resPost?.data?.idPublicacion;
 
     // 4. Asociar cada multimedia subida al post con su TIPO CORRECTO
     if (idPost && finalMediaItems.length > 0) {

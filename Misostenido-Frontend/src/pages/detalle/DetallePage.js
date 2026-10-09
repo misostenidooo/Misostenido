@@ -94,7 +94,10 @@ export const DetallePage = {
             ${isAuth ? `<button class="btn-detalle-like" id="btn-like-post" data-id="${id}">❤️ Me gusta</button>` : ''}
           </div>
           <section class="detalle-comments">
-            <h3>Comentarios</h3>
+            <h3 style="display:flex; align-items:center; gap:8px;">
+              <img src="src/assets/images/ICONO 2.png" alt="" class="ms-icon ms-icon-sm" />
+              Comentarios
+            </h3>
             <div id="comments-list">${comentariosHtml}</div>
             ${isAuth ? `
               <div class="detalle-comment-form">
@@ -192,7 +195,10 @@ export const DetallePage = {
         <article class="detalle-card">
           ${mediaHtml ? `<div class="detalle-media-grid detalle-hero-media">${mediaHtml}</div>` : ''}
           <div class="detalle-evento-header">
-            <span class="detalle-tipo-badge">🎟️ ${data.tipoEvento || 'Evento Musical'}</span>
+            <span class="detalle-tipo-badge" style="display:inline-flex; align-items:center; gap:6px;">
+              <img src="src/assets/images/ICONO 6.png" alt="" class="ms-icon ms-icon-xs" />
+              ${data.tipoEvento || 'Evento Musical'}
+            </span>
             <h1 class="detalle-title">${data.titulo}</h1>
             <p class="detalle-evento-meta">📅 ${fechaStr}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Ubicación por confirmar'}</p>
@@ -227,7 +233,10 @@ export const DetallePage = {
         <article class="detalle-card">
           ${mediaHtml ? `<div class="detalle-media-grid">${mediaHtml}</div>` : ''}
           <div class="detalle-evento-header">
-            <span class="detalle-tipo-badge">💼 Oferta de Servicio</span>
+            <span class="detalle-tipo-badge" style="display:inline-flex; align-items:center; gap:6px;">
+              <img src="src/assets/images/ICONO 5.png" alt="" class="ms-icon ms-icon-xs" />
+              Oferta de Servicio
+            </span>
             <h1 class="detalle-title">${data.titulo}</h1>
             <p class="detalle-evento-meta">💰 Tarifa: ${tarifa}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Nicaragua'}</p>
@@ -236,7 +245,10 @@ export const DetallePage = {
           </div>
           ${data.descripcion ? `<p class="detalle-descripcion">${data.descripcion}</p>` : ''}
           ${isAuth ? `
-            <button class="btn-detalle-action" id="btn-postular">💼 Postularme a esta oferta</button>
+            <button class="btn-detalle-action" id="btn-postular" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+              <img src="src/assets/images/ICONO 5.png" alt="" class="ms-icon ms-icon-xs" />
+              Postularme a esta oferta
+            </button>
           ` : `<p class="detalle-login-hint"><a href="#/login">Inicia sesión</a> para postularte.</p>`}
         </article>
       </div>
@@ -268,7 +280,10 @@ export const DetallePage = {
         <article class="detalle-card">
           ${mediaHtml ? `<div class="detalle-media-grid">${mediaHtml}</div>` : ''}
           <div class="detalle-evento-header">
-            <span class="detalle-tipo-badge">💼 Solicitud de Evento</span>
+            <span class="detalle-tipo-badge" style="display:inline-flex; align-items:center; gap:6px;">
+              <img src="src/assets/images/ICONO 5.png" alt="" class="ms-icon ms-icon-xs" />
+              Solicitud de Evento
+            </span>
             <h1 class="detalle-title">${data.titulo}</h1>
             <p class="detalle-evento-meta">💰 Presupuesto: ${presupuesto}</p>
             <p class="detalle-evento-meta">📍 ${data.ubicacion || 'Nicaragua'}</p>
@@ -277,7 +292,10 @@ export const DetallePage = {
           </div>
           ${data.descripcion ? `<p class="detalle-descripcion">${data.descripcion}</p>` : ''}
           ${isAuth ? `
-            <button class="btn-detalle-action" id="btn-postular">💼 Postularme a este evento</button>
+            <button class="btn-detalle-action" id="btn-postular" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+              <img src="src/assets/images/ICONO 5.png" alt="" class="ms-icon ms-icon-xs" />
+              Postularme a este evento
+            </button>
           ` : `<p class="detalle-login-hint"><a href="#/login">Inicia sesión</a> para postularte.</p>`}
         </article>
       </div>
@@ -304,7 +322,10 @@ export const DetallePage = {
         <article class="detalle-card">
           ${data.fotoPerfilUrl ? `<img src="${data.fotoPerfilUrl}" alt="${data.nombre}" class="detalle-negocio-avatar" />` : ''}
           <div class="detalle-evento-header">
-            <span class="detalle-tipo-badge">🎨 ${data.categoriaNombre || 'Creatividad'}</span>
+            <span class="detalle-tipo-badge" style="display:inline-flex; align-items:center; gap:6px;">
+              <img src="src/assets/images/ICONO 1.png" alt="" class="ms-icon ms-icon-xs" />
+              ${data.categoriaNombre || 'Creatividad'}
+            </span>
             <h1 class="detalle-title">${data.nombre}</h1>
             ${data.ciudad ? `<p class="detalle-evento-meta">📍 ${data.ciudad}</p>` : ''}
             ${data.calificacionPromedio ? `<p class="detalle-evento-meta">⭐ ${data.calificacionPromedio.toFixed(1)} / 5</p>` : ''}

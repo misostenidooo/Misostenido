@@ -214,8 +214,41 @@ public class ContratacionController : ControllerBase
         [FromQuery] int? idSolicitud,
         [FromQuery] int? idEmisor)
     {
-        var lista = await _contratacionService.ObtenerPostulacionesAsync(idOferta, idSolicitud, idEmisor);
-        return Ok(lista);
+        int idActual = ObtenerIdUsuarioActualRequerido();
+        string rol = User.FindFirstValue(ClaimTypes.Role) ?? "";
+        bool esGestorOAuditor = rol.Equals("ADMIN", StringComparison.OrdinalIgnoreCase) 
+                             || rol.Equals("MODERADOR", StringComparison.OrdinalIgnoreCase) 
+                             || rol.Equals("AUDITOR", StringComparison.OrdinalIgnoreCase);
+
+        if (esGestorOAuditor)
+        {
+            // Admin/Moderador/Auditor: ver todas
+            var lista = await _contratacionService.ObtenerPostulacionesAsync(idOferta, idSolicitud, idEmisor, null);
+            return Ok(lista);
+        }
+
+        // Usuario regular sin filtros específicos: mostrar TANTO las enviadas COMO las recibidas en sus publicaciones
+        if (idOferta == null && idSolicitud == null && idEmisor == null)
+        {
+            // Postulaciones enviadas por este usuario
+            var enviadas = await _contratacionService.ObtenerPostulacionesAsync(null, null, idActual, null);
+            // Postulaciones recibidas en sus propias solicitudes/ofertas
+            var recibidas = await _contratacionService.ObtenerPostulacionesAsync(null, null, null, idActual);
+
+            // Combinar sin duplicados por id_postulacion
+            var combinadas = enviadas
+                .Concat(recibidas)
+                .GroupBy(p => p.IdPostulacion)
+                .Select(g => g.First())
+                .OrderByDescending(p => p.Fecha)
+                .ToList();
+
+            return Ok(combinadas);
+        }
+
+        // Si viene filtro específico, usarlo directamente
+        var resultado = await _contratacionService.ObtenerPostulacionesAsync(idOferta, idSolicitud, idEmisor, null);
+        return Ok(resultado);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -242,6 +275,56 @@ public class ContratacionController : ControllerBase
         var resultado = await _contratacionService.EliminarMediaAsync(idMedia, id);
         return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CHAT & ACUERDOS EN VIVO DE NEGOCIACIÓN
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Envía un mensaje de chat dentro del contexto de una postulación.</summary>
+    [HttpPost("postulaciones/{idPostulacion:int}/mensajes")]
+    [Authorize]
+    public async Task<IActionResult> EnviarMensaje(int idPostulacion, [FromBody] CrearMensajeContratacionDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (string.IsNullOrWhiteSpace(dto.Contenido))
+            return BadRequest(new { exito = false, mensaje = "El contenido del mensaje no puede estar vacío." });
+
+        int idUsuario = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _contratacionService.EnviarMensajeAsync(idPostulacion, idUsuario, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Obtiene el historial completo de mensajes de una postulación.</summary>
+    [HttpGet("postulaciones/{idPostulacion:int}/mensajes")]
+    [Authorize]
+    public async Task<IActionResult> ObtenerMensajes(int idPostulacion)
+    {
+        int idUsuario = ObtenerIdUsuarioActualRequerido();
+        var mensajes = await _contratacionService.ObtenerMensajesAsync(idPostulacion, idUsuario);
+        return Ok(mensajes);
+    }
+
+    /// <summary>Guarda o actualiza el pre-contrato/acuerdo digital de una postulación.</summary>
+    [HttpPut("postulaciones/{idPostulacion:int}/acuerdo")]
+    [Authorize]
+    public async Task<IActionResult> GuardarAcuerdo(int idPostulacion, [FromBody] GuardarAcuerdoDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        int idUsuario = ObtenerIdUsuarioActualRequerido();
+        var resultado = await _contratacionService.GuardarAcuerdoAsync(idPostulacion, idUsuario, dto);
+        return resultado.Exito ? Ok(resultado) : BadRequest(resultado);
+    }
+
+    /// <summary>Obtiene los términos y firmas del acuerdo digital de una postulación.</summary>
+    [HttpGet("postulaciones/{idPostulacion:int}/acuerdo")]
+    [Authorize]
+    public async Task<IActionResult> ObtenerAcuerdo(int idPostulacion)
+    {
+        int idUsuario = ObtenerIdUsuarioActualRequerido();
+        var acuerdo = await _contratacionService.ObtenerAcuerdoAsync(idPostulacion, idUsuario);
+        return Ok(acuerdo);
+    }
+
 
     // ──────────────────────────────────────────────────────────────────────────
     // Helpers privados

@@ -14,6 +14,8 @@ export const FeedPage = {
   _page: 1,
   _container: null,
   _currentFilter: 'todos',
+  _modalOverlay: null,   // Referencia al modal montado en document.body
+  _modalObserver: null,  // MutationObserver para limpiar el modal al salir
 
   render() {
     const user = authService.getCurrentUser() || {};
@@ -60,25 +62,30 @@ export const FeedPage = {
 
           <nav class="sidebar-feed-nav">
             <button class="feed-nav-item active" data-filter="todos">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <img src="src/assets/images/ICONO 2.png" alt="Feed" class="ms-icon ms-icon-sm" />
               <span>Feed Principal</span>
             </button>
             <button class="feed-nav-item" data-filter="siguiendo">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <img src="src/assets/images/ICONO 3.png" alt="Siguiendo" class="ms-icon ms-icon-sm" />
               <span>Siguiendo</span>
             </button>
             <button class="feed-nav-item" data-filter="explorar">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <img src="src/assets/images/ICONO 7.png" alt="Explorar" class="ms-icon ms-icon-sm" />
               <span>Explorar Artistas</span>
             </button>
             <button class="feed-nav-item" data-filter="contrataciones">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <img src="src/assets/images/ICONO 5.png" alt="Gigs" class="ms-icon ms-icon-sm" />
               <span>Gigs y Empleo</span>
               <span class="nav-badge">NUEVO</span>
             </button>
             <button class="feed-nav-item" data-filter="eventos">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <img src="src/assets/images/ICONO 6.png" alt="Eventos" class="ms-icon ms-icon-sm" />
               <span>Eventos y Jams</span>
+            </button>
+            <button class="feed-nav-item" data-filter="notificaciones" id="feed-nav-notif-btn">
+              <img src="src/assets/images/ICONO_CAMPANA.png" alt="Notificaciones" class="ms-icon ms-icon-sm" />
+              <span>Notificaciones</span>
+              <span class="nav-badge" style="background:#ef4444; color:#fff; font-size:0.7rem; padding:1px 6px;">1</span>
             </button>
           </nav>
         </aside>
@@ -94,7 +101,7 @@ export const FeedPage = {
                 <span class="fb-fake-placeholder">¿Qué estás pensando, ${firstName}?</span>
                 <div class="fb-quick-icons">
                   <span class="fb-icon-media" title="Foto/video">🖼️</span>
-                  <span class="fb-icon-audio" title="Música">🎵</span>
+                  <img src="src/assets/images/ICONO 1.png" alt="Audio" class="ms-icon ms-icon-xs" title="Música" />
                 </div>
               </div>
             </div>
@@ -108,8 +115,13 @@ export const FeedPage = {
               </button>
 
               <button class="fb-action-btn fb-action-audio" id="btn-quick-audio">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#0d6855"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                <span>Música</span>
+                <img src="src/assets/images/ICONO 1.png" alt="Música" class="ms-icon ms-icon-sm" />
+                <span>Música / Audio</span>
+              </button>
+
+              <button class="fb-action-btn fb-action-create" id="btn-quick-create-post">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#d97706"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                <span>Crear publicación</span>
               </button>
             </div>
           </div>
@@ -129,7 +141,10 @@ export const FeedPage = {
           <!-- Oportunidades -->
           <div class="sidebar-widget">
             <div class="widget-header">
-              <h4 class="widget-title">💼 Oportunidades Abiertas</h4>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 5.png" alt="Oportunidades" class="ms-icon ms-icon-sm" />
+                <h4 class="widget-title">Oportunidades Abiertas</h4>
+              </div>
               <a href="#/contrataciones" class="widget-link">Ver todas</a>
             </div>
             <div id="oportunidades-list">
@@ -140,7 +155,10 @@ export const FeedPage = {
           <!-- Eventos -->
           <div class="sidebar-widget">
             <div class="widget-header">
-              <h4 class="widget-title">🎟️ Próximos Eventos</h4>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 6.png" alt="Eventos" class="ms-icon ms-icon-sm" />
+                <h4 class="widget-title">Próximos Eventos</h4>
+              </div>
               <a href="#/eventos" class="widget-link">Ver todos</a>
             </div>
             <div id="eventos-sidebar-list">
@@ -151,7 +169,10 @@ export const FeedPage = {
           <!-- Artistas Destacados -->
           <div class="sidebar-widget">
             <div class="widget-header">
-              <h4 class="widget-title">🎵 Artistas Destacados</h4>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <img src="src/assets/images/ICONO 3.png" alt="Artistas" class="ms-icon ms-icon-sm" />
+                <h4 class="widget-title">Artistas Destacados</h4>
+              </div>
               <a href="#/" class="widget-link">Ver todos</a>
             </div>
             <div id="sugeridos-list">
@@ -206,7 +227,7 @@ export const FeedPage = {
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="#22c55e"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </div>
                   <h4>Agregar fotos, videos o música</h4>
-                   <p>o arrastra y suelta aquí · MP3, MP4, JPG, PNG...</p>
+                  <p>o arrastra y suelta aquí · MP3, MP4, JPG, PNG...</p>
                 </div>
               </div>
 
@@ -222,7 +243,7 @@ export const FeedPage = {
 
             </div>
 
-            <!-- Barra "Agregar a tu publicación" -->
+            <!-- Barra inferior "Agregar a tu publicación" -->
             <div class="fb-add-to-post-card">
               <span class="fb-add-title">Agregar a tu publicación</span>
               <div class="fb-add-icons">
@@ -239,11 +260,9 @@ export const FeedPage = {
 
           </div>
 
-          <!-- Footer Modal: Botón Publicar -->
+          <!-- Pie del Modal -->
           <div class="fb-modal-footer">
-            <button class="btn-fb-submit" id="btn-fb-submit" disabled>
-              Publicar
-            </button>
+            <button class="btn-fb-submit" id="btn-fb-submit" disabled>Publicar</button>
           </div>
 
         </div>
@@ -853,6 +872,10 @@ export const FeedPage = {
         const filter = btn.dataset.filter;
         if (!filter) return;
 
+        if (filter === 'notificaciones') {
+          alert('Tienes 1 nueva solicitud de contratación pendiente en MiSostenido.');
+          return;
+        }
         if (filter === 'contrataciones') {
           window.location.hash = '#/contrataciones';
           return;
@@ -944,10 +967,7 @@ export const FeedPage = {
         }
       }
     });
-    const modalOverlay = container.querySelector('#fb-modal-overlay') || document.querySelector('#fb-modal-overlay');
-    if (modalOverlay && modalOverlay.parentNode !== document.body) {
-      document.body.appendChild(modalOverlay);
-    }
+    const modalOverlay = container.querySelector('#fb-modal-overlay');
     const mediaContainer = modalOverlay?.querySelector('#fb-media-container');
     const fileInput = modalOverlay?.querySelector('#fb-file-input');
     const dropArea = modalOverlay?.querySelector('#fb-drop-area');
@@ -1002,10 +1022,24 @@ export const FeedPage = {
       e.stopPropagation();
       openModal(true);
     });
+    container.querySelector('#btn-quick-create-post')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModal(false);
+    });
 
-    // Cerrar modal
+    // Cerrar modal al presionar X, hacer click afuera en el fondo o presionar ESC
     modalOverlay?.querySelector('#fb-modal-close')?.addEventListener('click', closeModal);
-    modalOverlay?.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+    modalOverlay?.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+    modalOverlay?.addEventListener('mousedown', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay && modalOverlay.style.display === 'flex') {
+        closeModal();
+      }
+    });
 
     // Botón verde (foto/video) dentro del modal para abrir dropzone
     modalOverlay?.querySelector('#btn-tool-photo')?.addEventListener('click', () => {
@@ -1071,8 +1105,10 @@ export const FeedPage = {
       }
     });
 
-    // Textarea input para activar/desactivar botón Publicar
+    // Textarea input para activar/desactivar botón Publicar y auto-expandir
     textarea?.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 220) + 'px';
       const hasText = textarea.value.trim().length > 0;
       const hasFiles = this._selectedFiles.length > 0;
       modalSubmit.disabled = !hasText && !hasFiles;

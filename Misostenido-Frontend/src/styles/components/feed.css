@@ -1507,12 +1507,13 @@
    MODAL DE PUBLICACIÓN
    ================================================================ */
 .feed-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(4px);
-  z-index: 9000;
-  display: flex;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  z-index: 9000 !important;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -1842,40 +1843,59 @@
    MODAL DE CREAR PUBLICACIÓN ESTILO FACEBOOK
    ================================================================ */
 .fb-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(5px);
-  z-index: 9999;
-  display: flex;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100% !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  z-index: 9999999 !important;
+  display: none;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 24px 16px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box !important;
+  cursor: pointer;
 }
 
 .fb-modal-box {
-  background: #ffffff;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-  animation: fbModalPop 0.22s ease-out;
-  overflow: hidden;
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  width: 100% !important;
+  max-width: 530px !important;
+  max-height: calc(100vh - 48px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+  animation: fbModalPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden !important;
+  margin: auto !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+  cursor: default;
 }
 
 @keyframes fbModalPop {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .fb-modal-header {
-  position: relative;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: #ffffff !important;
   text-align: center;
   padding: 16px 20px;
   border-bottom: 1px solid #e4e6eb;
+  flex-shrink: 0 !important;
 }
 
 .fb-modal-header h3 {
@@ -1909,11 +1929,13 @@
 
 .fb-modal-body {
   padding: 16px 20px;
-  overflow-y: auto;
-  flex: 1;
+  overflow-y: auto !important;
+  flex: 1 1 auto !important;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  max-height: calc(100vh - 200px) !important;
+  overscroll-behavior: contain;
 }
 
 .fb-modal-user {
@@ -2226,9 +2248,15 @@
   transform: translateY(-1px);
 }
 
-/* ─── FOOTER SUBMIT ─── */
+/* ─── FOOTER SUBMIT (STICKY AL FONDO) ─── */
 .fb-modal-footer {
-  padding: 14px 20px 18px;
+  padding: 12px 20px 16px !important;
+  border-top: 1px solid #e4e6eb !important;
+  background: #ffffff !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
 }
 
 .btn-fb-submit {

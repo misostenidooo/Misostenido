@@ -24,7 +24,7 @@ public class AdminController : ControllerBase
     // ──────────────────────────────────────────────────────────────────────────
     /// <summary>Obtiene las estadísticas globales de la plataforma (usuarios, publicaciones, ofertas, eventos, reportes).</summary>
     [HttpGet("estadisticas")]
-    [Authorize(Roles = "ADMIN,MODERADOR")]
+    [Authorize(Roles = "ADMIN,MODERADOR,AUDITOR")]
     public async Task<IActionResult> ObtenerEstadisticas()
     {
         var stats = await _adminService.ObtenerEstadisticasAsync();
@@ -67,7 +67,7 @@ public class AdminController : ControllerBase
     // ──────────────────────────────────────────────────────────────────────────
     /// <summary>Obtiene la lista de reportes de contenido generados por los usuarios.</summary>
     [HttpGet("reportes")]
-    [Authorize(Roles = "ADMIN,MODERADOR")]
+    [Authorize(Roles = "ADMIN,MODERADOR,AUDITOR")]
     public async Task<IActionResult> ObtenerReportes([FromQuery] bool soloPendientes = true)
     {
         var reportes = await _adminService.ObtenerReportesAsync(soloPendientes);
@@ -94,7 +94,7 @@ public class AdminController : ControllerBase
     // ──────────────────────────────────────────────────────────────────────────
     /// <summary>Consulta el historial de auditoría de acciones administrativas y del sistema.</summary>
     [HttpGet("auditoria")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN,AUDITOR")]
     public async Task<IActionResult> ObtenerLogAuditoria(
         [FromQuery] int? idUsuario,
         [FromQuery] string? accion,

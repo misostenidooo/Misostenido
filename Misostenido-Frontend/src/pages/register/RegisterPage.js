@@ -45,9 +45,9 @@ export const RegisterPage = {
               </p>
 
               <ul class="auth-feature-list">
-                <li><span class="feature-icon">🎵</span> Publica tu música y eventos</li>
-                <li><span class="feature-icon">🤝</span> Conecta con artistas y bandas</li>
-                <li><span class="feature-icon">📈</span> Haz crecer tu audiencia</li>
+                <li style="display:flex;align-items:center;gap:10px;"><img src="src/assets/images/ICONO 2.png" alt="Música" class="ms-icon ms-icon-sm" /> <span>Publica tu música y eventos</span></li>
+                <li style="display:flex;align-items:center;gap:10px;"><img src="src/assets/images/ICONO 3.png" alt="Comunidad" class="ms-icon ms-icon-sm" /> <span>Conecta con artistas y bandas</span></li>
+                <li style="display:flex;align-items:center;gap:10px;"><img src="src/assets/images/ICONO 4.png" alt="Audiencia" class="ms-icon ms-icon-sm" /> <span>Haz crecer tu audiencia</span></li>
               </ul>
 
               <div class="auth-hero-stats-row">

@@ -65,6 +65,10 @@ function resolveRoute() {
     if (outlet) outlet.style.paddingTop = '0';
   }
 
+  // Restaurar scroll del body y limpiar modales flotantes en body si cambiamos de ruta
+  document.body.style.overflow = '';
+  document.querySelectorAll('#fb-modal-overlay, .feed-modal-overlay').forEach(el => el.remove());
+
   // Renderizar la página
   if (outlet) {
     outlet.innerHTML = '';

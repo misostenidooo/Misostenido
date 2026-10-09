@@ -39,6 +39,17 @@ export const Navbar = {
         `;
       }).join('');
 
+      const mobileNavItemsHtml = navLinks.map(link => {
+        const isActive = currentHash === link.path ? 'active' : '';
+        return `
+          <li>
+            <a href="${link.path}" class="mobile-nav-link ${isActive}" data-protected="${link.protected}">
+              <span>${link.label}</span>
+            </a>
+          </li>
+        `;
+      }).join('');
+
       const avatarSrc = user.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0d6855&color=fff`;
       const userName = user.name || 'Usuario';
       const userEmail = user.email || '';
@@ -46,15 +57,22 @@ export const Navbar = {
       el.innerHTML = `
         <header class="app-header">
           <div class="navbar-container">
+            <!-- Botón Hamburguesa Móvil -->
+            <button class="btn-mobile-toggle" id="btn-mobile-toggle" aria-label="Abrir menú de navegación">
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+            </button>
+
             <!-- Logo Oficial -->
             <a href="#/" class="navbar-brand">
               <img src="src/assets/images/logo.png" alt="Misostenido" class="brand-logo-img" />
             </a>
 
-            <!-- Barra de búsqueda global -->
+            <!-- Barra de búsqueda global (Desktop) -->
             <div class="navbar-search-wrapper" id="navbar-search-wrapper">
               <div class="navbar-search-bar" id="navbar-search-bar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-sm" />
                 <input type="text" id="navbar-search-input" placeholder="Busca artistas, eventos, canciones..." class="navbar-search-input" autocomplete="off" />
                 <button class="navbar-search-clear" id="navbar-search-clear" style="display:none">✕</button>
               </div>
@@ -62,7 +80,7 @@ export const Navbar = {
               <div class="navbar-search-results" id="navbar-search-results" style="display:none"></div>
             </div>
 
-            <!-- Menú central -->
+            <!-- Menú central (Desktop) -->
             <nav class="navbar-nav">
               <ul class="nav-list">
                 ${navItemsHtml}
@@ -74,7 +92,7 @@ export const Navbar = {
               ${isAuth ? `
                 <div class="user-auth-menu">
                   <button class="btn-notification-bell" aria-label="Notificaciones" id="btn-notifications">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <img src="src/assets/images/ICONO_CAMPANA.png" alt="Notificaciones" class="ms-icon ms-icon-md" />
                     <span class="bell-badge">1</span>
                   </button>
 
@@ -89,7 +107,10 @@ export const Navbar = {
                         <strong>${userName}</strong>
                         <small>${userEmail}</small>
                       </div>
-                      <a href="#/perfil" class="dropdown-item" id="btn-user-profile">Mi Perfil</a>
+                      <a href="#/perfil" class="dropdown-item" id="btn-user-profile" style="display:flex;align-items:center;gap:8px;">
+                        <img src="src/assets/images/ICONO 9.png" alt="Perfil" class="ms-icon ms-icon-sm" />
+                        <span>Mi Perfil & Ajustes</span>
+                      </a>
                       <button class="dropdown-item btn-logout" id="btn-nav-logout">Cerrar Sesión</button>
                     </div>
                   </div>
@@ -103,6 +124,55 @@ export const Navbar = {
             </div>
           </div>
         </header>
+
+        <!-- Drawer y Overlay para Móviles -->
+        <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+        <aside class="mobile-nav-drawer" id="mobile-nav-drawer">
+          <div class="mobile-drawer-header">
+            <a href="#/" class="navbar-brand">
+              <img src="src/assets/images/logo.png" alt="Misostenido" class="brand-logo-img-mobile" />
+            </a>
+            <button class="btn-drawer-close" id="btn-drawer-close" aria-label="Cerrar menú">✕</button>
+          </div>
+
+          <!-- Buscador en Drawer Móvil -->
+          <div class="mobile-drawer-search">
+            <div class="navbar-search-bar">
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-sm" />
+              <input type="text" id="mobile-search-input" placeholder="Buscar artistas, canciones..." class="navbar-search-input" autocomplete="off" />
+            </div>
+          </div>
+
+          <!-- Links de Navegación Móvil -->
+          <ul class="mobile-drawer-links">
+            ${mobileNavItemsHtml}
+          </ul>
+
+          <!-- Sección Usuario Móvil -->
+          <div class="mobile-drawer-footer">
+            ${isAuth ? `
+              <div class="mobile-user-card">
+                <img src="${avatarSrc}" alt="${userName}" class="mobile-user-avatar" />
+                <div class="mobile-user-details">
+                  <span class="mobile-user-name">${userName}</span>
+                  <span class="mobile-user-email">${userEmail}</span>
+                </div>
+              </div>
+              <a href="#/perfil" class="mobile-btn-profile">
+                <img src="src/assets/images/ICONO 9.png" alt="Perfil" class="ms-icon ms-icon-sm" />
+                <span>Ver Mi Perfil</span>
+              </a>
+              <button class="mobile-btn-logout" id="btn-mobile-logout">
+                <span>Cerrar Sesión</span>
+              </button>
+            ` : `
+              <div class="mobile-auth-buttons">
+                <a href="#/login" class="mobile-btn-login">Iniciar Sesión</a>
+                <a href="#/register" class="mobile-btn-register">Registrarse</a>
+              </div>
+            `}
+          </div>
+        </aside>
       `;
 
       // Asignar listeners
@@ -120,19 +190,46 @@ export const Navbar = {
   attachEvents(el) {
     const isAuth = authService.isAuthenticated();
 
-    // Proteger links de navegación si no está autenticado
-    const links = el.querySelectorAll('.nav-item[data-protected="true"]');
+    // Proteger links de navegación si no está autenticado (Desktop y Móvil)
+    const links = el.querySelectorAll('.nav-item[data-protected="true"], .mobile-nav-link[data-protected="true"]');
     links.forEach(link => {
       link.addEventListener('click', (e) => {
         if (!isAuth) {
           e.preventDefault();
+          this._closeMobileDrawer(el);
           const target = link.textContent.trim();
           AuthModal.show('Función Exclusiva', `Debes iniciar sesión para explorar la sección de "${target}".`);
         }
       });
     });
 
-    // Dropdown de perfil
+    // Control del Cajón Móvil (Hamburger & Overlay)
+    const toggleBtn = el.querySelector('#btn-mobile-toggle');
+    const closeBtn = el.querySelector('#btn-drawer-close');
+    const overlay = el.querySelector('#mobile-nav-overlay');
+    const drawer = el.querySelector('#mobile-nav-drawer');
+
+    toggleBtn?.addEventListener('click', () => {
+      drawer?.classList.add('open');
+      overlay?.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    });
+
+    const closeDrawer = () => {
+      drawer?.classList.remove('open');
+      overlay?.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    closeBtn?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+
+    // Cerrar menú móvil al hacer clic en cualquier link
+    el.querySelectorAll('.mobile-drawer-links a, .mobile-drawer-footer a').forEach(a => {
+      a.addEventListener('click', () => closeDrawer());
+    });
+
+    // Dropdown de perfil Desktop
     const profileTrigger = el.querySelector('#user-profile-trigger');
     const dropdown = el.querySelector('#user-dropdown');
     profileTrigger?.addEventListener('click', (e) => {
@@ -144,9 +241,15 @@ export const Navbar = {
       dropdown?.classList.remove('show');
     });
 
-    // Botón logout
+    // Botón logout Desktop & Móvil
     const logoutBtn = el.querySelector('#btn-nav-logout');
     logoutBtn?.addEventListener('click', () => {
+      authService.logout();
+    });
+
+    const mobileLogoutBtn = el.querySelector('#btn-mobile-logout');
+    mobileLogoutBtn?.addEventListener('click', () => {
+      closeDrawer();
       authService.logout();
     });
 
@@ -156,8 +259,26 @@ export const Navbar = {
       alert('Tienes 1 nueva solicitud de contratación pendiente.');
     });
 
+    // Buscador móvil con tecla enter
+    const mobileSearchInput = el.querySelector('#mobile-search-input');
+    mobileSearchInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const q = mobileSearchInput.value.trim();
+        if (q) {
+          closeDrawer();
+          router.navigate(`#/?busqueda=${encodeURIComponent(q)}`);
+        }
+      }
+    });
+
     // ====== BUSCADOR GLOBAL FUNCIONAL ======
     this._attachSearchEvents(el);
+  },
+
+  _closeMobileDrawer(el) {
+    el.querySelector('#mobile-nav-drawer')?.classList.remove('open');
+    el.querySelector('#mobile-nav-overlay')?.classList.remove('open');
+    document.body.style.overflow = '';
   },
 
   _attachSearchEvents(el) {
@@ -237,7 +358,12 @@ export const Navbar = {
         html = `<div class="search-no-results">No se encontraron resultados para "<strong>${q}</strong>"</div>`;
       } else {
         if (artistas.length > 0) {
-          html += `<div class="search-group-title">🎤 Artistas</div>`;
+          html += `
+            <div class="search-group-title" style="display:flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 3.png" alt="Artistas" class="ms-icon ms-icon-xs" />
+              <span>Artistas</span>
+            </div>
+          `;
           html += artistas.slice(0, 4).map(a => {
             const av = a.fotoPerfilUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(a.nombre||'A')}&background=0d6855&color=fff&size=40`;
             const aId = a.idUsuario || a.id || a.idArtista || '';
@@ -255,12 +381,17 @@ export const Navbar = {
         }
 
         if (eventos.length > 0) {
-          html += `<div class="search-group-title">🎟️ Eventos</div>`;
+          html += `
+            <div class="search-group-title" style="display:flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 6.png" alt="Eventos" class="ms-icon ms-icon-xs" />
+              <span>Eventos</span>
+            </div>
+          `;
           html += eventos.slice(0, 3).map(ev => {
             const id = ev.idEvento || ev.id;
             return `
               <div class="search-result-item" data-nav="#/detalle?tipo=evento&id=${id}">
-                <span class="search-result-icon">🎟️</span>
+                <img src="src/assets/images/ICONO 6.png" alt="Evento" class="ms-icon ms-icon-sm" />
                 <div class="search-result-info">
                   <span class="search-result-title">${ev.titulo}</span>
                   <span class="search-result-sub">📍 ${ev.ubicacion || 'Nicaragua'}</span>
@@ -271,13 +402,18 @@ export const Navbar = {
         }
 
         if (posts.length > 0) {
-          html += `<div class="search-group-title">📝 Publicaciones</div>`;
+          html += `
+            <div class="search-group-title" style="display:flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 2.png" alt="Publicaciones" class="ms-icon ms-icon-xs" />
+              <span>Publicaciones</span>
+            </div>
+          `;
           html += posts.map(p => {
             const id = p.idPublicacion || p.id;
             const thumb = (p.media || [])[0]?.url || null;
             return `
               <div class="search-result-item" data-nav="#/detalle?tipo=post&id=${id}">
-                ${thumb ? `<img src="${thumb}" class="search-result-thumb" />` : `<span class="search-result-icon">📝</span>`}
+                ${thumb ? `<img src="${thumb}" class="search-result-thumb" />` : `<img src="src/assets/images/ICONO 2.png" alt="Post" class="ms-icon ms-icon-sm" />`}
                 <div class="search-result-info">
                   <span class="search-result-title">${p.autorNombre || 'Publicación'}</span>
                   <span class="search-result-sub">${(p.texto || '').slice(0, 60)}...</span>

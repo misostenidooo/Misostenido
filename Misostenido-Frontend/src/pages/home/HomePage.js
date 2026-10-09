@@ -20,8 +20,9 @@ export const HomePage = {
       <section class="hero-section">
         <div class="hero-backdrop"></div>
         <div class="hero-content">
-          <div class="hero-pill-tag">
-            <span>🌿 #1 PLATAFORMA MUSICAL DE LATINOAMÉRICA</span>
+          <div class="hero-pill-tag" style="display:inline-flex;align-items:center;gap:8px;">
+            <img src="src/assets/images/ICONO 7.png" alt="MiSostenido" class="ms-icon ms-icon-xs" />
+            <span>#1 PLATAFORMA MUSICAL DE LATINOAMÉRICA</span>
           </div>
 
           <h1 class="hero-main-title">
@@ -37,12 +38,12 @@ export const HomePage = {
           <!-- BUSCADOR CON FILTROS -->
           <div class="search-filter-bar">
             <div class="filter-input-col">
-              <span class="filter-icon">🔍</span>
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-sm" />
               <input type="text" placeholder="¿Qué buscas?" class="filter-input" id="search-query" />
             </div>
             <div class="filter-divider"></div>
             <div class="filter-input-col">
-              <span class="filter-icon">🎸</span>
+              <img src="src/assets/images/ICONO 1.png" alt="Instrumento" class="ms-icon ms-icon-sm" />
               <select class="filter-select" id="search-genre">
                 <option value="">Género / Instrumento</option>
                 <option value="guitarra">Guitarra / Solista</option>
@@ -54,7 +55,7 @@ export const HomePage = {
             </div>
             <div class="filter-divider"></div>
             <div class="filter-input-col">
-              <span class="filter-icon">📍</span>
+              <img src="src/assets/images/ICONO 6.png" alt="Ubicación" class="ms-icon ms-icon-sm" />
               <select class="filter-select" id="search-location">
                 <option value="">Todas las Ubicaciones (Nicaragua)</option>
                 <option value="Managua">Managua</option>
@@ -77,7 +78,7 @@ export const HomePage = {
               </select>
             </div>
             <button class="btn-search-submit" id="btn-search-hero">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-xs" style="filter: brightness(0) invert(1);" />
               <span>Buscar</span>
             </button>
           </div>
@@ -85,11 +86,11 @@ export const HomePage = {
           <!-- BOTONES DE ACCIÓN RÁPIDA -->
           <div class="hero-quick-actions">
             <button class="btn-quick-primary protected-action" data-feature="Crear Perfil de Músico" data-nav="#/perfil">
-              <span>🎤</span>
+              <img src="src/assets/images/ICONO 1.png" alt="Músico" class="ms-icon ms-icon-sm" />
               <span>Soy Músico / Crear mi Perfil</span>
             </button>
             <button class="btn-quick-secondary protected-action" data-feature="Contratar Músicos" data-nav="#/contrataciones">
-              <span>💼</span>
+              <img src="src/assets/images/ICONO 5.png" alt="Contratar" class="ms-icon ms-icon-sm" />
               <span>Quiero Contratar Músicos</span>
             </button>
           </div>
@@ -100,18 +101,30 @@ export const HomePage = {
       <section class="stats-section">
         <div class="stats-container">
           <div class="stat-box">
+            <div class="ms-icon-badge ms-icon-badge-md" style="margin: 0 auto 10px;">
+              <img src="src/assets/images/ICONO 3.png" alt="Músicos" />
+            </div>
             <h2 class="stat-number" id="stat-artists-count">...</h2>
             <p class="stat-label">Músicos en la Comunidad</p>
           </div>
           <div class="stat-box">
+            <div class="ms-icon-badge ms-icon-badge-md" style="margin: 0 auto 10px;">
+              <img src="src/assets/images/ICONO 5.png" alt="Contrataciones" />
+            </div>
             <h2 class="stat-number" id="stat-gigs-count">...</h2>
             <p class="stat-label">Ofertas de Contratación</p>
           </div>
           <div class="stat-box">
+            <div class="ms-icon-badge ms-icon-badge-md" style="margin: 0 auto 10px;">
+              <img src="src/assets/images/ICONO 6.png" alt="Eventos" />
+            </div>
             <h2 class="stat-number" id="stat-events-count">...</h2>
             <p class="stat-label">Eventos Próximos</p>
           </div>
           <div class="stat-box">
+            <div class="ms-icon-badge ms-icon-badge-md" style="margin: 0 auto 10px;">
+              <img src="src/assets/images/ICONO 2.png" alt="Publicaciones" />
+            </div>
             <h2 class="stat-number" id="stat-posts-count">...</h2>
             <p class="stat-label">Publicaciones en el Feed</p>
           </div>
@@ -122,7 +135,9 @@ export const HomePage = {
       <section class="content-section">
         <div class="section-header-row">
           <div class="section-title-wrapper">
-            <span class="section-title-icon">⭐</span>
+            <div class="ms-icon-badge ms-icon-badge-sm">
+              <img src="src/assets/images/ICONO 3.png" alt="Artistas" />
+            </div>
             <h2 class="section-title">Artistas y Bandas Destacadas</h2>
           </div>
           <button class="section-link-more protected-action" data-feature="Ver todos los Músicos" data-nav="#/feed">
@@ -139,7 +154,9 @@ export const HomePage = {
       <section class="content-section tendencias-section">
         <div class="section-header-row">
           <div class="section-title-wrapper">
-            <span class="section-title-icon">🔥</span>
+            <div class="ms-icon-badge ms-icon-badge-sm">
+              <img src="src/assets/images/ICONO 10.png" alt="Tendencias" />
+            </div>
             <h2 class="section-title">Tendencias de la Comunidad</h2>
           </div>
           <button class="section-link-more protected-action" data-feature="Feed Principal" data-nav="#/feed">
@@ -156,7 +173,9 @@ export const HomePage = {
       <section class="content-section">
         <div class="section-header-row">
           <div class="section-title-wrapper">
-            <span class="section-title-icon">💼</span>
+            <div class="ms-icon-badge ms-icon-badge-sm">
+              <img src="src/assets/images/ICONO 5.png" alt="Contrataciones" />
+            </div>
             <h2 class="section-title">Contrataciones Destacadas</h2>
           </div>
           <button class="section-link-more protected-action" data-feature="Ver todas las contrataciones" data-nav="#/contrataciones">
@@ -172,7 +191,9 @@ export const HomePage = {
       <section class="content-section">
         <div class="section-header-row">
           <div class="section-title-wrapper">
-            <span class="section-title-icon">🎟️</span>
+            <div class="ms-icon-badge ms-icon-badge-sm">
+              <img src="src/assets/images/ICONO 6.png" alt="Eventos" />
+            </div>
             <h2 class="section-title">Cartelera de Eventos y Jam Sessions</h2>
           </div>
           <button class="section-link-more protected-action" data-feature="Ver Calendario Completo" data-nav="#/eventos">
@@ -189,7 +210,9 @@ export const HomePage = {
       <section class="content-section entretenimiento-section">
         <div class="section-header-row">
           <div class="section-title-wrapper">
-            <span class="section-title-icon">🎨</span>
+            <div class="ms-icon-badge ms-icon-badge-sm">
+              <img src="src/assets/images/ICONO 9.png" alt="Creatividad" />
+            </div>
             <h2 class="section-title">Entretenimiento y Creatividad</h2>
           </div>
           <button class="section-link-more protected-action" data-feature="Explorar Creatividad" data-nav="#/creatividad">
@@ -205,12 +228,16 @@ export const HomePage = {
       <!-- ================= CTA COMUNIDAD ================= -->
       <section class="content-section">
         <div class="community-header text-center">
-          <div class="badge-fire">🚀 ¿Listo para unirte?</div>
+          <div class="ms-icon-badge ms-icon-badge-md" style="margin: 0 auto 12px;">
+            <img src="src/assets/images/ICONO 7.png" alt="MiSostenido" />
+          </div>
+          <div class="badge-fire">¿Listo para unirte a MiSostenido?</div>
           <p class="section-subtitle">Crea tu perfil, publica tu música y conecta con la industria musical de Latinoamérica.</p>
         </div>
         <div class="feed-cta-center">
-          <button class="btn-feed-cta protected-action" data-feature="Feed Principal de la Comunidad" data-nav="#/feed">
-            <span>🚀 Ir al Feed Principal de la Comunidad</span>
+          <button class="btn-feed-cta protected-action" data-feature="Feed Principal de la Comunidad" data-nav="#/feed" style="display:inline-flex;align-items:center;gap:10px;">
+            <img src="src/assets/images/ICONO 2.png" alt="Feed" class="ms-icon ms-icon-sm" />
+            <span>Ir al Feed Principal de la Comunidad</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
@@ -239,7 +266,7 @@ export const HomePage = {
       api.get('/creatividad/negocios?orden=RECIENTES&tamPagina=6').catch(() => null),
     ]);
 
-    const { artistasDestacados, eventosProximos } = destacadosData;
+    const { artistasDestacados = [], eventosProximos = [] } = destacadosData || {};
 
     // 0. MÉTRICAS REALES DESDE LA BASE DE DATOS
     const elArtistsCount = container.querySelector('#stat-artists-count');

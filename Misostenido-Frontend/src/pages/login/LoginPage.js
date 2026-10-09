@@ -44,10 +44,11 @@ export const LoginPage = {
 
               <div class="auth-hero-stats-row">
                 <div class="hero-stat-pill">
-                  <span class="pill-dot">›</span>
+                  <img src="src/assets/images/ICONO 3.png" alt="" class="ms-icon ms-icon-xs" />
                   <span>200+ Artistas Locales</span>
                 </div>
                 <div class="hero-stat-pill">
+                  <img src="src/assets/images/ICONO 6.png" alt="" class="ms-icon ms-icon-xs" />
                   <span>1K+ Eventos Realizados</span>
                 </div>
               </div>

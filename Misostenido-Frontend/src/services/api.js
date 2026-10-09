@@ -2,8 +2,9 @@
  * api.js — Cliente HTTP conectado a Misostenido.Api (.NET Backend)
  */
 
-// Puerto por defecto de Misostenido.Api en .NET (launchSettings: http://localhost:5180)
-const BASE_URL = window.__API_URL__ || 'http://localhost:5180/api';
+// URL de la API en Azure
+const AZURE_API_URL = 'https://misostenidoapi20261008234533-g4f9e9acb0fze7as.mexicocentral-01.azurewebsites.net/api';
+const BASE_URL = window.__API_URL__ || AZURE_API_URL;
 
 async function request(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
@@ -39,9 +40,9 @@ async function request(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    // Si la API no está encendida o no hay conexión de red
+    // Si la API no responde o no hay conexión de red
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('No se pudo conectar con el servidor de la API (http://localhost:5180). Verifica que el backend esté en ejecución.');
+      throw new Error(`No se pudo conectar con el servidor de la API (${BASE_URL}). Verifica la conexión con Azure.`);
     }
     throw error;
   }
@@ -75,7 +76,7 @@ async function upload(endpoint, formData) {
     return data;
   } catch (error) {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('No se pudo conectar con el servidor de la API (http://localhost:5180).');
+      throw new Error(`No se pudo conectar con el servidor de la API (${BASE_URL}).`);
     }
     throw error;
   }

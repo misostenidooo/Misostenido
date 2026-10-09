@@ -110,24 +110,27 @@ export const CreatividadPage = {
       <!-- =================== HERO =================== -->
       <section class="creatividad-hero" id="cr-hero">
         <div class="creatividad-hero-content">
-          <span class="creatividad-hero-pill">🇳🇮 NICARAGUA • ECOSISTEMA CREATIVO & DIRECTORIO</span>
+          <span class="creatividad-hero-pill" style="display:inline-flex;align-items:center;gap:8px;">
+            <img src="src/assets/images/ICONO 6.png" alt="Nicaragua" class="ms-icon ms-icon-xs" />
+            <span>NICARAGUA • ECOSISTEMA CREATIVO & DIRECTORIO</span>
+          </span>
           <h1 class="creatividad-hero-title">Tiendas de Instrumentos, Video Cursos Gratis y Estudios</h1>
           <p class="creatividad-hero-subtitle">Encuentra dónde comprar guitarras, aprender con clases y cursos en video gratuitos, calibrar tus instrumentos con luthiers o grabar en estudios de Managua, León, Granada y todo el país.</p>
 
           <!-- Buscador Predictivo -->
           <div class="creatividad-search-box">
             <div class="cr-search-field">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-sm" />
               <input type="text" id="cr-input-search" placeholder="Busca tiendas de guitarras, video clases gratis, estudios..." />
             </div>
             <div class="cr-search-divider"></div>
             <div class="cr-search-field" style="max-width:220px">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+              <img src="src/assets/images/ICONO 6.png" alt="Ciudad" class="ms-icon ms-icon-sm" />
               <input type="text" id="cr-input-ciudad" placeholder="Ciudad (Managua, León...)" />
             </div>
-            <button class="btn-cr-search" id="btn-cr-search">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Buscar
+            <button class="btn-cr-search" id="btn-cr-search" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-xs" style="filter: brightness(0) invert(1);" />
+              <span>Buscar</span>
             </button>
           </div>
         </div>
@@ -146,25 +149,28 @@ export const CreatividadPage = {
         <!-- Barra superior de navegación y acciones -->
         <div class="creatividad-top-bar">
           <div class="creatividad-views-tabs">
-            <button class="cr-view-tab active" id="tab-cr-todos">
-              <span>🏢 Directorio General</span>
+            <button class="cr-view-tab active" id="tab-cr-todos" style="display:inline-flex;align-items:center;gap:8px;">
+              <img src="src/assets/images/ICONO 9.png" alt="Directorio" class="ms-icon ms-icon-sm" />
+              <span>Directorio General</span>
             </button>
-            <button class="cr-view-tab" id="tab-cr-videocursos">
-              <span>🎬 Video Cursos & Clases Gratis</span>
+            <button class="cr-view-tab" id="tab-cr-videocursos" style="display:inline-flex;align-items:center;gap:8px;">
+              <img src="src/assets/images/ICONO 1.png" alt="Cursos" class="ms-icon ms-icon-sm" />
+              <span>Video Cursos & Clases Gratis</span>
             </button>
-            <button class="cr-view-tab" id="tab-cr-favoritos">
-              <span>❤️ Mis Guardados</span>
+            <button class="cr-view-tab" id="tab-cr-favoritos" style="display:inline-flex;align-items:center;gap:8px;">
+              <img src="src/assets/images/ICONO 7.png" alt="Guardados" class="ms-icon ms-icon-sm" />
+              <span>Mis Guardados</span>
             </button>
           </div>
 
           <div class="creatividad-quick-actions">
-            <button class="btn-crear-curso-quick" id="btn-cr-crear-curso">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              + Publicar Curso / Video
+            <button class="btn-crear-curso-quick" id="btn-cr-crear-curso" style="display:inline-flex;align-items:center;gap:8px;">
+              <img src="src/assets/images/ICONO 1.png" alt="Curso" class="ms-icon ms-icon-xs" />
+              <span>+ Publicar Curso / Video</span>
             </button>
-            <button class="btn-crear-negocio" id="btn-cr-crear">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              + Publicar Negocio o Tienda
+            <button class="btn-crear-negocio" id="btn-cr-crear" style="display:inline-flex;align-items:center;gap:8px;">
+              <img src="src/assets/images/ICONO 9.png" alt="Negocio" class="ms-icon ms-icon-xs" />
+              <span>+ Publicar Negocio o Tienda</span>
             </button>
           </div>
         </div>

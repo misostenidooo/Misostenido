@@ -103,3 +103,27 @@ const data = await api.get('/endpoint');
 1. Crea la carpeta `src/components/miComponente/`
 2. Crea `MiComponente.js` + `miComponente.css`
 3. Importa y úsalo donde lo necesites
+
+---
+
+## ☁️ Despliegue en la Nube (Microsoft Azure)
+
+El proyecto **MiSostenido** se encuentra 100% desplegado en **Microsoft Azure**, estructurado en tres componentes sincronizados:
+
+### 1. 🗄️ Base de Datos (Azure SQL Database)
+- **Exportación:** Se generó un archivo de exportación de base de datos `.bacpac` desde SQL Server local (esquema y datos).
+- **Alojamiento de Migración:** Se creó una cuenta de almacenamiento en Azure para albergar el archivo `.bacpac`.
+- **Servidor SQL en Azure:** Se aprovisionó el servidor `misostenidooo.database.windows.net` e importó el archivo para crear la base de datos `misostenidodesvelo`.
+- **Conectividad:** Se configuró la cadena de conexión en el backend para comunicar los modelos y servicios con Azure SQL.
+
+### 2. ⚙️ Backend API (Azure App Service)
+- **Publicación:** La API en **.NET 9 (C#)** fue publicada en **Azure App Service** mediante Web Deploy.
+- **CORS & Seguridad:** Configuración de CORS permisivo para peticiones del frontend y autenticación con tokens JWT.
+- **Documentación:** Swagger UI completamente activo en entorno de producción:
+  - 🔗 **[Swagger UI API en Vivo](https://misostenidoapi20261008234533-g4f9e9acb0fze7as.mexicocentral-01.azurewebsites.net/swagger/index.html)**
+
+### 3. 🌐 Frontend (Sitio Web Estático en Azure Storage)
+- **Hospedaje:** La aplicación web SPA se aloja en una **Cuenta de Almacenamiento de Azure** (`almacenasostenido`) con la función de **Sitio web estático** (*Static Website*).
+- **Estructura en la Nube:** Los archivos fuente (`index.html` y carpeta `src/`) están desplegados en el contenedor `$web`.
+- **Enlace de Producción:**
+  - 🔗 **[Aplicación Web en Vivo](https://almacenasostenido.z41.web.core.windows.net/)**

@@ -204,3 +204,61 @@ public class AgregarContratacionMediaDto
     public string Url { get; set; } = string.Empty;
     public string? Descripcion { get; set; }
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CHAT EN VIVO DE NEGOCIACIÓN & INTERMEDIACIÓN
+// ──────────────────────────────────────────────────────────────────────────────
+
+public class CrearMensajeContratacionDto
+{
+    public string Contenido { get; set; } = string.Empty;
+    /// <summary>TEXTO | PROPUESTA | SISTEMA | ARCHIVO</summary>
+    public string? TipoMensaje { get; set; } = "TEXTO";
+    public string? ArchivoUrl { get; set; }
+}
+
+public class MensajeContratacionDto
+{
+    public int IdMensaje { get; set; }
+    public int IdPostulacion { get; set; }
+    public int IdUsuarioEmisor { get; set; }
+    public string EmisorNombre { get; set; } = string.Empty;
+    public string? EmisorFoto { get; set; }
+    public string EmisorRol { get; set; } = string.Empty;
+    public string Contenido { get; set; } = string.Empty;
+    public string TipoMensaje { get; set; } = "TEXTO";
+    public string? ArchivoUrl { get; set; }
+    public DateTime FechaEnvio { get; set; }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ACUERDO DIGITAL & PRE-CONTRATO
+// ──────────────────────────────────────────────────────────────────────────────
+
+public class GuardarAcuerdoDto
+{
+    public decimal? HonorariosAcordados { get; set; }
+    public DateTime? FechaCompromiso { get; set; }
+    public string? ClausulasEspeciales { get; set; }
+    public string? FirmaDigitalContratante { get; set; }
+    public string? FirmaDigitalArtista { get; set; }
+    /// <summary>BORRADOR | FIRMADO_CONTRATANTE | FIRMADO_ARTISTA | RATIFICADO | CANCELADO</summary>
+    public string EstadoAcuerdo { get; set; } = "BORRADOR";
+}
+
+public class AcuerdoContratacionDto
+{
+    public int IdAcuerdo { get; set; }
+    public int IdPostulacion { get; set; }
+    public decimal? HonorariosAcordados { get; set; }
+    public DateTime? FechaCompromiso { get; set; }
+    public string? ClausulasEspeciales { get; set; }
+    public string? FirmaDigitalContratante { get; set; }
+    public DateTime? FechaFirmaContratante { get; set; }
+    public string? FirmaDigitalArtista { get; set; }
+    public DateTime? FechaFirmaArtista { get; set; }
+    public string EstadoAcuerdo { get; set; } = "BORRADOR";
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaActualizacion { get; set; }
+}
+

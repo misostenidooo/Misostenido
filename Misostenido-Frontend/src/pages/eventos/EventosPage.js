@@ -52,19 +52,22 @@ export const EventosPage = {
       <!-- =================== HERO =================== -->
       <section class="eventos-hero" id="ev-hero">
         <div class="eventos-hero-content">
-          <span class="eventos-hero-pill">🎵 CARTELERA MUSICAL</span>
+          <span class="eventos-hero-pill" style="display:inline-flex;align-items:center;gap:8px;">
+            <img src="src/assets/images/ICONO 6.png" alt="Nicaragua" class="ms-icon ms-icon-xs" />
+            <span>CARTELERA MUSICAL NICARAGUA</span>
+          </span>
           <h1 class="eventos-hero-title">Eventos, Conciertos y Talleres Musicales</h1>
           <p class="eventos-hero-subtitle">Descubre y publica conciertos, masterclasses, audiciones y más en la comunidad Misostenido.</p>
 
           <!-- Buscador -->
           <div class="eventos-search-box">
             <div class="ev-search-field">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-sm" />
               <input type="text" id="ev-input-search" placeholder="Buscar eventos, artistas, talleres..." />
             </div>
             <div class="ev-search-divider"></div>
             <div class="ev-search-field" style="max-width:240px">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+              <img src="src/assets/images/ICONO 6.png" alt="Ubicación" class="ms-icon ms-icon-sm" />
               <select id="ev-input-ubicacion" style="border:none;outline:none;background:transparent;width:100%;font-size:.88rem;color:var(--color-text-main);cursor:pointer;">
                 <option value="">Todas las Ciudades</option>
                 <option value="Managua">Managua</option>
@@ -86,9 +89,9 @@ export const EventosPage = {
                 <option value="Costa Caribe Sur">Costa Caribe Sur (Bluefields)</option>
               </select>
             </div>
-            <button class="btn-ev-search" id="btn-ev-search">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Buscar
+            <button class="btn-ev-search" id="btn-ev-search" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO_BUSQUEDA.png" alt="Buscar" class="ms-icon ms-icon-xs" style="filter: brightness(0) invert(1);" />
+              <span>Buscar</span>
             </button>
           </div>
         </div>
@@ -99,17 +102,38 @@ export const EventosPage = {
         <!-- Barra superior -->
         <div class="eventos-top-bar">
           <div class="eventos-filters-row" id="ev-filters-row">
-            <button class="filter-chip active" data-tipo="">🎶 Todos</button>
-            <button class="filter-chip" data-tipo="Concierto">🎸 Conciertos</button>
-            <button class="filter-chip" data-tipo="Festival">🎪 Festivales</button>
-            <button class="filter-chip" data-tipo="Masterclass">🎓 Masterclass</button>
-            <button class="filter-chip" data-tipo="Taller">🛠 Talleres</button>
-            <button class="filter-chip" data-tipo="Audición">🎤 Audiciones</button>
-            <button class="filter-chip" data-tipo="Jam Session">🎷 Jam Sessions</button>
+            <button class="filter-chip active" data-tipo="" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 7.png" alt="Todos" class="ms-icon ms-icon-xs" />
+              <span>Todos</span>
+            </button>
+            <button class="filter-chip" data-tipo="Concierto" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 2.png" alt="Conciertos" class="ms-icon ms-icon-xs" />
+              <span>Conciertos</span>
+            </button>
+            <button class="filter-chip" data-tipo="Festival" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 3.png" alt="Festivales" class="ms-icon ms-icon-xs" />
+              <span>Festivales</span>
+            </button>
+            <button class="filter-chip" data-tipo="Masterclass" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 1.png" alt="Masterclass" class="ms-icon ms-icon-xs" />
+              <span>Masterclass</span>
+            </button>
+            <button class="filter-chip" data-tipo="Taller" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 9.png" alt="Talleres" class="ms-icon ms-icon-xs" />
+              <span>Talleres</span>
+            </button>
+            <button class="filter-chip" data-tipo="Audición" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 8.png" alt="Audiciones" class="ms-icon ms-icon-xs" />
+              <span>Audiciones</span>
+            </button>
+            <button class="filter-chip" data-tipo="Jam Session" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="src/assets/images/ICONO 10.png" alt="Jam" class="ms-icon ms-icon-xs" />
+              <span>Jam Sessions</span>
+            </button>
           </div>
-          <button class="btn-crear-evento" id="btn-ev-crear">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            + Crear Evento
+          <button class="btn-crear-evento" id="btn-ev-crear" style="display:inline-flex;align-items:center;gap:8px;">
+            <img src="src/assets/images/ICONO 6.png" alt="Crear" class="ms-icon ms-icon-xs" />
+            <span>+ Crear Evento</span>
           </button>
         </div>
 

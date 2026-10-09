@@ -194,8 +194,32 @@ Misostenido/
 ## Seguridad y Variables
 
 - **Tokens JWT:** Configurados en `appsettings.json` bajo la sección `JwtSettings`.
-- **CORS:** Configurado en `Program.cs` para permitir peticiones locales desde el Frontend.
+- **CORS:** Configurado en `Program.cs` para permitir peticiones locales y desde Azure.
 - **Supabase Storage:** Claves públicas y buckets configurados en `Misostenido-Frontend/src/services/storageService.js` para la gestión directa de audio y video.
+
+---
+
+## ☁️ Despliegue en Producción (Microsoft Azure)
+
+El proyecto completo se encuentra alojado y funcionando en **Microsoft Azure** bajo una arquitectura de tres capas:
+
+### 1. 🗄️ Base de Datos — Azure SQL Database
+- **Migración con BACPAC:** Se exportó la base de datos local desde SQL Server en un archivo `.bacpac` (conteniendo esquema y datos).
+- **Almacenamiento Temporal:** Se subió el archivo `.bacpac` a una cuenta de almacenamiento en Azure Blob Storage.
+- **Servidor SQL en la Nube:** Se creó el servidor lógico `misostenidooo.database.windows.net` en Azure y se importó el archivo para generar la base de datos `misostenidodesvelo`.
+- **Conexión:** Se vinculó con la API mediante la cadena de conexión cifrada en `appsettings.json`.
+
+### 2. ⚙️ Backend — Azure App Service (.NET 9 Web API)
+- **Publicación:** Desplegado desde Visual Studio / Web Deploy hacia un recurso **Azure App Service**.
+- **Seguridad & CORS:** Configuración de middleware CORS (`AllowAll`) y autenticación JWT Bearer.
+- **Documentación Swagger:**
+  - 🔗 **[Swagger UI en Vivo](https://misostenidoapi20261008234533-g4f9e9acb0fze7as.mexicocentral-01.azurewebsites.net/swagger/index.html)**
+
+### 3. 🌐 Frontend — Azure Storage (Sitio Web Estático)
+- **Hospedaje Estático:** Publicado en la cuenta de almacenamiento `almacenasostenido` habilitando la característica de **Sitio web estático** (*Static Website*).
+- **Contenedor `$web`:** Hospeda el archivo de entrada `index.html` y los módulos en `src/`.
+- **Acceso Web:**
+  - 🔗 **[Plataforma MiSostenido en Vivo](https://almacenasostenido.z41.web.core.windows.net/)**
 
 ---
 

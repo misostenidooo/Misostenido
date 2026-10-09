@@ -130,11 +130,20 @@
 @media (max-width: 900px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 32px;
   }
 }
 
 @media (max-width: 600px) {
+  .app-footer {
+    padding: 36px 16px 20px;
+  }
   .footer-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .footer-logo-img {
+    height: 52px;
+    padding: 6px 14px;
   }
 }
